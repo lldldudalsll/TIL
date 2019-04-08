@@ -9,7 +9,6 @@ export default class PhoneInfoList extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    console.log(this.props.data)
     return nextProps.data !== this.props.data;
   }
 
