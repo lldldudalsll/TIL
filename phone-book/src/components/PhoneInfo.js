@@ -64,7 +64,11 @@ export default class PhoneInfo extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     // 수정 상태가 아니고, info 값이 같다면 리렌더링 안함
-    if (!this.state.editing
+    // console.log('!this.state.editing', !this.state.editing)
+    // console.log('nextState.editing', !nextState.editing)
+    // console.log('nextProps.info', nextProps.info)
+    // console.log('this.props.info', this.props.info)
+    if (!this.state.editing // 이 부분 왜 반대가 아닌거지?
         && !nextState.editing
         && nextProps.info === this.props.info) {
           return false; // false 를 반환하면 해당 조건에는 render를 호출하지 않음.
@@ -74,7 +78,7 @@ export default class PhoneInfo extends Component {
   }
 
   render() {
-    // console.log('render PhoneInfo ' + this.props.info.id)
+    console.log('rendering-test PhoneInfo ' + this.props.info.id)
     const style = {
       border: '1px solid #181818',
       padding: '8px',
