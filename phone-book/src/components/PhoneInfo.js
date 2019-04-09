@@ -18,15 +18,25 @@ export default class PhoneInfo extends Component {
     phone: ''
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    // 수정 상태가 아니고, info 값이 같다면 리렌더링 안함
-    if (!this.state.editing
-        && !nextState.editing
-        && nextProps.info === this.props.info) {
-          return false; // false 를 반환하면 해당 조건에는 render를 호출하지 않음.
-        }
-        // 나머지 경우엔 리렌더링 함.
-        return true;
+  handleRemove = () => {
+    // 삭제 버튼이 클릭되면 onRemove 에 id 를 넣어서 호출
+    const { info, onRemove } = this.props;
+    onRemove(info.id);
+  }
+
+  handleToggleEdit = () => {
+    const { editing } = this.state;
+    this.setState({
+      editing: !editing
+    })
+  }
+
+  // input에서 onChange 이벤트가 발생 될 때 호출되는 함수
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -52,25 +62,15 @@ export default class PhoneInfo extends Component {
     }
   }
 
-  handleRemove = () => {
-    // 삭제 버튼이 클릭되면 onRemove 에 id 를 넣어서 호출
-    const { info, onRemove } = this.props;
-    onRemove(info.id);
-  }
-
-  handleToggleEdit = () => {
-    const { editing } = this.state;
-    this.setState({
-      editing: !editing
-    })
-  }
-
-  // input에서 onChange 이벤트가 발생 될 때 호출되는 함수
-  handleChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({
-      [name]: value
-    });
+  shouldComponentUpdate(nextProps, nextState) {
+    // 수정 상태가 아니고, info 값이 같다면 리렌더링 안함
+    if (!this.state.editing
+        && !nextState.editing
+        && nextProps.info === this.props.info) {
+          return false; // false 를 반환하면 해당 조건에는 render를 호출하지 않음.
+        }
+        // 나머지 경우엔 리렌더링 함.
+        return true;
   }
 
   render() {
