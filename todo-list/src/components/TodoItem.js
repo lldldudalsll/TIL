@@ -13,8 +13,9 @@ class TodoItem extends Component {
           // 즉 삭제부분에 들어간 이벤트가 해당 부모의 이벤트까지 전달되지 않도록 해줌. 
           // 따라서 onToggle 은 실행되지 않고 onRemove 만 실행
           onRemove(id)}
-          }>&times;</div>
-        <div className={`todo-text ${ checked ? ' checked' : '' }`}>
+          }>&times;
+        </div>
+        <div className={`todo-text ${ checked ? 'checked' : '' }`}>
           <div>{text}</div>
         </div>
         {
