@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import TodoItem from './TodoItem';
 
 class TodoItemList extends Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.props.todos !== nextProps.todos;
+  }
+
   render() {
     const { todos, onToggle, onRemove } = this.props;
     // props 로 받아온 객체배열을 TodoItem 컴포넌트 배열로 변환하기
