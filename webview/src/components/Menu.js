@@ -21,6 +21,7 @@ const Menu = () => {
         <li><NavLink to ="/results" activeStyle={activeStyle}>Results</NavLink></li>
         <li><NavLink to ="/sample" activeStyle={activeStyle}>Sample</NavLink></li>
         <li><NavLink to ="/manager" activeStyle={activeStyle}>Manager</NavLink></li>
+        <li><NavLink to ="/posts" activeStyle={activeStyle}>Post List</NavLink></li>
       </ul>
     </div>
   )
