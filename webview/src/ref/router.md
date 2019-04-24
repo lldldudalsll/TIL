@@ -4,5 +4,6 @@
 asdasd
 ```
 
-    asdsadasd    
-    
+    function study() {
+      return experiment;
+    }    
