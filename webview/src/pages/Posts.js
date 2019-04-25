@@ -3,6 +3,8 @@ import { Post } from 'pages';
 import { Route, Link } from 'react-router-dom';
 
 const Posts = ({match}) => {
+
+  console.log('Posts', match);
   return (
     <div>
       <h3>Post List</h3>
