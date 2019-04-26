@@ -118,3 +118,75 @@ MyComponent는 리액트의 Component 클래스를 상속.
 직접 construcor 메서드를 작성하여 생성자 메서드에서 추가작업을 하려면,  
 메서드 내부에서 부모 클래스인 Component의 constructor 메서드를 먼저 호출해야 한다.  
 이때 super 키워드를 사용하며, 컴포넌트를 만들 때 props 값들을 사용하므로 props를 메서드의 파라미터로 전달한다.
+
+```
+// 기존 js
+function Vehicle(name, speed) {
+  this.name = name;
+  this.speed = speed;
+}
+
+Vehicle.prototype.drive = function () {
+  console.log(this.name + ' runs at ' + this.speed)
+};
+
+var tico = new Vehicle('tico', 50);
+
+tico.drive(); // 'tico runs at 50'
+
+function Sedan(name, speed, maxSpeed) {
+  Vehicle.apply(this, arguments)
+  this.maxSpeed = maxSpeed;
+}
+
+Sedan.prototype = Object.create(Vehicle.prototype);
+Sedan.prototype.constructor = Sedan;
+Sedan.prototype.boost = function () {
+  console.log(this.name + ' boosts its speed at ' + this.maxSpeed);
+};
+
+var sonata = new Sedan('sonata', 100, 200);
+
+sonata.drive(); // 'sonata runs at 100'
+sonata.boost(); // 'sonata boosts its speed at 200'
+```
+
+```
+// es6
+
+class Vehicle {
+  constructor (name, speed) {
+    this.name = name;
+    this.speed = speed;
+  }
+
+  drive () {
+    console.log(this.name + ' runs at ' + this.speed);
+  }
+}
+
+const tico = new Vehicle('tico', 50);
+
+tico.drive();
+
+class Sedan extends Vehicle {
+  constructor (name, speed, maxspeed) {
+    super(name, speed);
+    this.maxspeed = maxspeed;
+  }
+
+  boost () {
+    // super.drive();
+    console.log(this.name + ' boosts its speed at ' + this.maxspeed);
+  }
+}
+
+const sonata = new Sedan('sonata', 100, 200);
+
+sonata.drive();
+sonata.boost();
+
+
+// Vehicle.apply(this, arguments); -> super(name, speed);
+
+```
