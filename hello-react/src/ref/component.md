@@ -190,3 +190,100 @@ sonata.boost();
 // Vehicle.apply(this, arguments); -> super(name, speed);
 
 ```
+
+### state 초기값 설정
+    
+    constructor(props) {
+      super(props);
+      this.state = {
+        number: 0
+      }
+    }
+
+### JSX 내부에서 state 랜더링
+    
+    render() {
+      return (
+        <div>
+          <p>안녕하세요, 제 이름은 {this.props.name} 입니다.</p>
+          <p>저는 {this.props.age}살 입니다.</p>
+          <p>숫자: {this.state.number}</p>
+        </div>
+      )
+    }
+    
+### state 값 업데이트: setState()
+state 값을 업데이트할 때는 this.setState() 메서드를 사용한다.
+    
+    <!-- this.setState({
+      수정할 필드 이름: 값,
+      수정할 또 다른 필드 이름: 값
+    }) -->
+
+    render() {
+      return (
+        <div>
+          <p>안녕하세요, 제 이름은 {this.props.name} 입니다.</p>
+          <p>저는 {this.props.age}살 입니다.</p>
+          <p>숫자: {this.state.number}</p>
+          <button onClick={() => {
+            this.setState({
+              number: this.state.number + 1
+            })
+          }}>더하기</button>
+        </div>
+      )
+    }
+    
+### state를 constructor에서 꺼내기
+원래 초기 state는 constructor 메서드에서 정의하지만 defaultProps와 propTypes를 정의할 때  
+사용한 transform-class-properties 문법으로 constructor 바깥에서 정의 가능
+```
+import PropTypes from 'prop-types';
+
+class MyComponent extends Component {
+
+  static defaultProps = {
+    name: 'john'
+  }
+
+  static propTypes = {
+    name: PropTypes.string,  // name props 타입을 문자열로 설정
+    age: PropTypes.number.isRequired // 필수 propTypes 설정
+  }
+  
+  state = {
+    number: 0
+  }
+
+  render() {
+    (...)
+  }
+}
+```
+
+### state 값을 업데이트할 때 주의사항
+state값을 업데이트할 때는 언제나 setState로만 업데이트해야한다.  
+예를 들어 다음은 잘못된 코드  
+```
+this.state.number = this.state.number + 1;
+this.state.someArray.push(3);
+this.state.someObject.value = 3;
+```
+
+setState() 메서드가 하는 역할은 파라미터로 전달받은 필드를 업데이트 한 후 컴포넌트가  
+리렌더링하도록 트리거하는 것. 하지만 이렇게 state에 직접 접근하여 값을 수정하면 컴포넌트를 자동으로  
+리렌더링 하지 않음. 이 때 this.forceUpdate() 메서드를 호출하여 강제로 리렌더링을 할 수 있지만,  
+이 방식은 매우 비효율적이므로 웬만하면 사용을 피하자.  
+
+그렇다면 배열이나 객체를 업데이트할 때는 어떻게 해야할까?  
+이런 상황에서는 배열이나 객체 `사본`을 만들고 그 사본에 값을 업데이트한 후, 사본으로 값을 설정하는 방식  
+으로 진행한다.
+
+### 정리
+props와 state는 둘 다 컴포넌트에서 사용하거나, 렌더링할 데이터들을 담고 있으므로 비슷해 보일 수도 있지만, 역할은 매우 다름. props는 부모 컴포넌트가 설정하고, state는 컴포넌트 자체적으로 지닌 값으로  
+컴포넌트 내부에서 값을 업데이트합니다.
+
+props를 사용한다고 해서 값이 무조건 고정적인 것은 아님,  
+부모 컴포넌트의 state를 자식 컴포넌트의 props로 전달하고, 자식 컴포넌트에서 특정 이벤트가 발생할 때  
+부모 컴포넌트의 메서드를 호출하면 props도 유동적으로 사용할 수 있음.
