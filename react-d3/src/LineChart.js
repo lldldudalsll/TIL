@@ -38,7 +38,7 @@ class LineChart extends Component {
     // .scaleTime()는 x축시 시간을 기준으로 설정할 것이라고 선언
     // .extent()는 첫번째 인자값의 데이타의 date 속성의 값중에 가장 작은값과 가장 큰값을 배열로 응답해줍니다.
     // ex: [new Date('2018-01-01'), new Date('2018-01-08')]
-    // .range()는 위치값으로 최소값의 위치와 최대값의 위치를 배열로 받아 위 .domain의 값과 매칭
+    // domain 은 실제 값의 범위, range 는 백분율처럼 변환하고 싶은 값의 범위.
 
     const y = d3.scaleLinear()
       .domain([0, d3.max(data, d => d.value)]).nice()
@@ -49,19 +49,21 @@ class LineChart extends Component {
     const xAxis = g => g
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x).ticks(width / 90).tickSizeOuter(0));
+      // call methods 는 단순하게 '자기가 호출된 바로 앞의 객체를 매개변수로 넘겨주는 역할'을 한다.
+      // 첫번째 파라미터로 설정한 이름의 함수를 실행하고 선택적으로 두번째 이후로 그 밖의 파라미터도 함께 넘길 수 있다.
      
     const yAxis = g => g
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y))
-      .call(g => g.select(".domain").remove())
-      .call(g => {
-        return g.select(".tick:last-of-type text").clone()
-          .attr("x", 3)
-          .attr("text-anchor", "start")
-          .attr("font-weight", "bold")
-          .attr("font-size", '20px')
-          .text('Y축')
-        });
+      // .call(g => g.select(".domain").remove())
+      // .call(g => {
+      //   return g.select(".tick:last-of-type text").clone()
+      //     .attr("x", 3)
+      //     .attr("text-anchor", "start")
+      //     .attr("font-weight", "bold")
+      //     .attr("font-size", '20px')
+      //     .text('Y축')
+      //   });
      
     const line = d3.line()
       .defined(d => !isNaN(d.value))
@@ -73,7 +75,7 @@ class LineChart extends Component {
       .datum(data)
       .attr("fill", "none")
       .attr("stroke", "steelblue")
-      .attr("stroke-width", 1)
+      .attr("stroke-width", 5)
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
       .attr("d", line);
