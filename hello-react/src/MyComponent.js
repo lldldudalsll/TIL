@@ -14,6 +14,9 @@ class MyComponent extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      number: 0
+    }
   }
 
   render() {
@@ -21,6 +24,14 @@ class MyComponent extends Component {
       <div>
         My name is {this.props.name}
         저는 {this.props.age} 살 입니다.
+        <div>
+          {this.state.number}
+        </div>
+        <button onClick={() => {
+          this.setState({
+            number: this.state.number + 1
+          })
+        }}>Click Me</button>
       </div>
     );
   }

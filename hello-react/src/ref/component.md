@@ -85,12 +85,13 @@ export default MyComponent;
 ## State
 
 위의 props는 부모컴포넌트가 설정하며 컴포넌트 자신은 해당 props를 읽기 전용으로만 사용가능.  
-컴포넌트 내부에서 읽고 또 업데이트할 수 있는 값을 사용하려면 state를 사용해야함.
+`컴포넌트 내부에서 읽고 또 업데이트할 수 있는 값을 사용하려면 state를 사용해야함.`
 이것은 언제나 기본값을 미리 설정해야 사용할 수 있으며 this.setState() 메서드로서만 값을 업데이트 해야한다.  
 
 `state 초깃값 설정 -> state 렌더링 -> state 값 업데이트`
 
 ### 컴포넌트의 생성자 메서드: constructor()
+객체를 생성하는 함수를 생성자 함수라 한다.
 state초깃값은 컴포넌트의 생성자 메서드인 constructor 내부에서 설정.  
 생성자 메서드는 컴포넌트를 새로 만들 때 실행.
 ```
@@ -129,6 +130,7 @@ function Vehicle(name, speed) {
 Vehicle.prototype.drive = function () {
   console.log(this.name + ' runs at ' + this.speed)
 };
+// prototype은 사전 그대로의 원형!
 
 var tico = new Vehicle('tico', 50);
 
@@ -136,11 +138,17 @@ tico.drive(); // 'tico runs at 50'
 
 function Sedan(name, speed, maxSpeed) {
   Vehicle.apply(this, arguments)
+  // Vehicle 생성자에 Sedan의 this 와 arguments를 적용해!
+  // 즉, Vehicle의 this들을 그대로 받으란 뜻
   this.maxSpeed = maxSpeed;
 }
 
 Sedan.prototype = Object.create(Vehicle.prototype);
+// Sedan의 prototype과 Vehicle의 prototype을 연결
+// Object.create(Vehicle.prototype)과 new Vehicle()의 차이를 알아둘것.  
+// Object.create는 객체를 만들되 생성자는 실행하지 않음. 즉 그냥 프로토타입만 넣는다.
 Sedan.prototype.constructor = Sedan;
+// 오류를 수정하는 코드
 Sedan.prototype.boost = function () {
   console.log(this.name + ' boosts its speed at ' + this.maxSpeed);
 };
