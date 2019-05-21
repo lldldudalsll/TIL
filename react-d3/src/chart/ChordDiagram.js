@@ -35,7 +35,7 @@ class ChordDiagram extends Component {
     }
 
     const formatValue = d3.formatPrefix(",.0", 1e3)
-
+    // console.log(formatValue(6000)) // 6k
     const svg = d3.select('body').append('svg')
       .style('width', width).style('height', height).style('margin', margin)
 
@@ -50,21 +50,13 @@ class ChordDiagram extends Component {
     const ribbon = d3.ribbon()
       .radius(270)
 
-    console.log('ribbon', ribbon)
-
     const color = d3.scaleOrdinal()
       .domain(d3.range(4))
       .range(["#000000", "#FFDD89", "#957244", "#F26223"])
-
-    console.log('color', color)
-
-    const asd = d3.scaleLinear().domain([1, 10]).range([0, 100]);
-    console.log('asd', asd(10))
-
+      
     const chords = chord(data);
-    console.log(chords)
     const g = svg.append('g').selectAll('g').data(chords.groups).join('g').attr('transform', `translate(${width/2}, ${height/2})`)
-
+    console.log(chords)
     g.append('path')
       .attr("fill", d => color(d.index))
       .attr("stroke", d => d3.rgb(color(d.index)).darker())
@@ -98,7 +90,6 @@ class ChordDiagram extends Component {
         .attr("fill", d => color(d.target.index))
         .attr("stroke", d => d3.rgb(color(d.target.index)).darker())
         .attr('transform', `translate(${width/2}, ${height/2})`)
-
   }
   render() {
     return (
