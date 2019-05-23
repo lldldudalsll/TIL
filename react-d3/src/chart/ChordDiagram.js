@@ -94,7 +94,13 @@ class ChordDiagram extends Component {
   render() {
     return (
       <div>
-        
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 10 H 90 V 90 H 10 Z"/>
+          <circle cx="10" cy="10" r="2" fill="red"/>
+          <circle cx="90" cy="90" r="2" fill="red"/>
+          <circle cx="90" cy="10" r="2" fill="red"/>
+          <circle cx="10" cy="90" r="2" fill="red"/>
+        </svg>
       </div>
     );
   }
