@@ -7,6 +7,7 @@
   <body>
     <h1>Circos Diagram</h1>
     <script>
+      const a = require('d3')
       const width = 700,
             height = 700,
             margin = {top: 50, right: 50, bottom: 50, left: 50}
@@ -30,7 +31,7 @@
       const svg = d3.select('body').append('svg')
         .style('width', width)
         .style('height', height)
-        // .style('margin-top', marginTop)
+        // .style('margin-top', margin.top)
         .style('margin-right', margin.right)
         .style('margin-bottem', margin.bottom)
         .style('margin-left', margin.left)

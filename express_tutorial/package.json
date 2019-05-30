@@ -12,6 +12,7 @@
   "dependencies": {
     "d3": "^5.9.2",
     "ejs": "^2.6.1",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "line-reader": "^0.4.0"
   }
 }
