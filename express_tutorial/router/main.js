@@ -1,31 +1,32 @@
 const fs = require('fs');
 const lineReader = require('line-reader');
+const d3 = require('d3');
 
 module.exports = function(app) {
   app.get('/', function(req, res) {
 
     let count = 0;
     const str = [];
-    lineReader.eachLine('./data/gene.txt', function(line, last) {
-      console.log(line)
+    lineReader.eachLine('./public/data/gene.txt', function(line, last) {
+      // console.log(line)
       if(count === 0) { // column
         // str.menu = filterFirstLine(line)
       } else { // except column
-        str['item' + count] = filterItems(line)
+        str[count] = filterItems(line)
       }
 
       count ++; // increase number of line
 
       if(last) {
         console.log(' === parsing is done ! === ');
-        console.log(str)
+        // console.log(JSON.stringify(str))
         makeFile(JSON.stringify(str)); // Save string format, Not object
       }
     });
 
     // function to save file
-    function makeFile() {
-      fs.writeFile("./data/gene.json", str, function(err) {
+    function makeFile(str) {
+      fs.writeFile("./public/data/gene.json", str, function(err) {
         if(err) {
           return console.log(err)
         }
@@ -52,16 +53,25 @@ module.exports = function(app) {
         gene.end = arr[4],
         gene.target = arr[5]
       }
-      console.log(gene)
+      // console.log(gene);
       return gene
     }
     
-    res.send(gene)
+    res.render('index.html')
   });
 
 
-  app.get('/about',function(req, res) {
-    res.render('about.html');
+  app.get('/circos',function(req, res) {
+
+    fs.readFile("./public/data/gene.json", (err, data) => {
+      if (err) throw err;
+      // console.log(JSON.parse(data));
+
+      res.render('circos', {
+        title: 'Circos'
+      });
+    })
+
   });
   
 }

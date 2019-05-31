@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pm2 start server.js --watch"
+    "dev": "pm2 start server.js --watch",
+    "start": "nodemon server.js --exec babel-node --presets babel-preset-env"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,12 @@
     "ejs": "^2.6.1",
     "express": "^4.17.1",
     "line-reader": "^0.4.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.6",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^1.19.1"
   }
 }

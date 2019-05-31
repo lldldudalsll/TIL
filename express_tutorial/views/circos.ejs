@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      // console.log('asdsadadsads')
+      d3.json('data/gene.json', function(data) {
+        console.log('d: ', data)
+      })
+      const width = 700,
+            height = 700,
+            margin = {
+              top: 50, 
+              right: 50, 
+              bottom: 50, 
+              left: 50
+            }
+      // const data = 
+      const svg = d3.select('body').append('svg')
+      .style('width', width)
+      .style('height', height)
+      // .style('margin-top', margin.top)
+      .style('margin-right', margin.right)
+      .style('margin-bottem', margin.bottom)
+      .style('margin-left', margin.left)
+
+      const chord = d3.chord()
+        .padAngle(0.05)
+        .sortSubgroups(d3.descending)
+
+      const arc = d3.arc()
+        .innerRadius(270)
+        .outerRadius(290)
+
+      const ribbon = d3.ribbon()
+        .radius(270)
+
+      const color = d3.scaleOrdinal()
+        .domain(d3.range(4))
+        .range(["#000000", "#FFDD89", "#957244", "#F26223"])
+    </script>
+  </body>
+</html>
