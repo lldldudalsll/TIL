@@ -1,6 +1,7 @@
 const fs = require('fs');
 const lineReader = require('line-reader');
 const d3 = require('d3');
+const content = fs.readFileSync('./public/data/gene.json');
 
 module.exports = function(app) {
   app.get('/', function(req, res) {
@@ -9,17 +10,17 @@ module.exports = function(app) {
     const str = [];
     lineReader.eachLine('./public/data/gene.txt', function(line, last) {
       // console.log(line)
-      if(count === 0) { // column
-        // str.menu = filterFirstLine(line)
-      } else { // except column
-        str[count] = filterItems(line)
-      }
-
+      // if(count === 0) { // column
+      //   // str.menu = filterFirstLine(line)
+      //   str[count] = filterItems(line)
+      // }
+      str[count] = filterItems(line);
       count ++; // increase number of line
 
       if(last) {
         console.log(' === parsing is done ! === ');
         // console.log(JSON.stringify(str))
+        str.shift();
         makeFile(JSON.stringify(str)); // Save string format, Not object
       }
     });
@@ -63,14 +64,14 @@ module.exports = function(app) {
 
   app.get('/circos',function(req, res) {
 
-    fs.readFile("./public/data/gene.json", (err, data) => {
-      if (err) throw err;
-      // console.log(JSON.parse(data));
+    const geneData = JSON.parse(content);
+    // console.log(geneData);
 
-      res.render('circos', {
-        title: 'Circos'
-      });
-    })
+    res.render('circos', {
+      title: 'Circos'
+    }), function (geneData) {
+      d3.select('body').text('123123')
+    };
 
   });
   

@@ -18,6 +18,10 @@
         [ 1013,   990,  940, 6907]
       ]
 
+      d3.json('data/gene.json', function(data) {
+        console.log('adsdasdasda', data)
+      })
+
       function groupTicks(d, step) {
         const k = (d.endAngle - d.startAngle) / d.value;
         return d3.range(0, d.value, step).map(value => {
