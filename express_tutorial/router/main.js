@@ -64,14 +64,9 @@ module.exports = function(app) {
 
   app.get('/circos',function(req, res) {
 
-    const geneData = JSON.parse(content);
-    // console.log(geneData);
-
     res.render('circos', {
       title: 'Circos'
-    }), function (geneData) {
-      d3.select('body').text('123123')
-    };
+    })
 
   });
   
