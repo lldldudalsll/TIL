@@ -1,16 +1,16 @@
 import React from 'react';
 // import BarChart from './BarChart';
 // import LineChart from './LineChart';
-// import PieChart from './PieChart';
-import ChordDiagram from './chart/ChordDiagram'
+import PieChart from './chart/PieChart';
+// import ChordDiagram from './chart/ChordDiagram'
 
 function App() {
   return (
     <div className="App">
       {/* <BarChart />
       <LineChart /> */}
-      {/* <PieChart /> */}
-      <ChordDiagram />
+      <PieChart />
+      {/* <ChordDiagram /> */}
     </div>
   );
 }
