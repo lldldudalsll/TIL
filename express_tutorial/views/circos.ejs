@@ -9,12 +9,10 @@
 </head>
 
 <body>
+    <div id="circos"></div>
     <script>
-        // console.log('d3 test', d3);
         // d3.json('data/gene.json', function(data) {
-
-        //     const geneData = JSON.parse(data)
-        //         // console.log('sdaasdasda', geneData)
+        //   console.log(data);
         // })
 
         let request = new Request('http://localhost:3000/data/gene.json', {
@@ -25,46 +23,51 @@
         });
 
         fetch(request).then((response) => {
-            console.log(response);
-            response.json().then((data) => {
-                console.log(data);
+          // console.log(response);
+          response.json().then((data) => {
+            // console.log(data);
+            const angle = new Array;
+            const sortStr = new Array;
 
-                const geneData = [];
-                for (let i = 0; i < data.length; i++) {
-                    const angle = Number(data[i].end) - Number(data[i].start)
-                    console.log(angle)
-                    geneData.push(angle)
-                }
-                console.log('geneeeee', geneData)
-
-                const width = 700,
-                    height = 700,
-                    margin = {
-                        top: 50,
-                        right: 50,
-                        bottom: 50,
-                        left: 50
-                    }
-
-                const svg = d3.select("body").append('svg')
-                    .style('width', width)
-                    .style('height', height)
-                    // .style('margin-top', margin.top)
-                    .style('margin-right', margin.right)
-                    .style('margin-bottem', margin.bottom)
-                    .style('margin-left', margin.left)
-
-                const chord = d3.chord()
-                    .padAngle(0.05)
-                    .sortSubgroups(d3.descending)
-
-                const arc = d3.arc()
-                    .innerRadius(270)
-                    .outerRadius(290)
-
-                const ribbon = d3.ribbon()
-                    .radius(270)
+            for (let i = 0; i < data.length; i++) {
+              angle.push(Number(data[i].end) - Number(data[i].start));
+              data[i]["angle"] = angle[i];
+            //   console.log(data[i].angle)
+    
+              sortStr.push(data[i].reference.substr(3, 2));
+              data[i]["chr"] = sortStr[i];
+            }
+            data.sort(function (a, b) {
+                return a.chr - b.chr
             });
+            console.log(data);
+    
+            const width = 700,
+                  height = 700,
+                  margin = {
+                    top: 50,
+                    right: 50,
+                    bottom: 50,
+                    left: 50
+                  }
+    
+            const svg = d3.select("#circos")
+              .append('svg')
+              .style('width', width)
+              .style('height', height)
+              // .style('margin-top', margin.top)
+              .style('margin-right', margin.right)
+              .style('margin-bottem', margin.bottom)
+              .style('margin-left', margin.left)
+              .append('g').attr('transfrom', `translate(${width / 2}, ${height / 2})`);
+    
+            const arc = d3.arc()
+              .innerRadius(270)
+              .outerRadius(290)
+    
+            const ribbon = d3.ribbon()
+              .radius(270)
+          });
         });
     </script>
 </body>
