@@ -11,55 +11,79 @@
 <body>
     <div id="circos"></div>
     <script>
-        // const aasd = await d3.json('http://localhost:3000/data/gene.json')
-        // .then((data) => console.log(data))
-        // console.log('daddasasd', aasd)
+        async function readJsonData() {
+            const gene = [];
+            const fusion = [];
+            const receiveGene = await d3.json('http://localhost:3000/data/gene.json')
+                .then((data) => {
+                    const angle = new Array;
+                    const sortStr = new Array;
+                    for (let i = 0; i < data.length; i++) {
+                        angle.push(Number(data[i].end) - Number(data[i].start));
+                        data[i]["size"] = angle[i];
 
-        let geneRequest = new Request('http://localhost:3000/data/gene.json', {
-            method: 'GET'
-        });
+                        sortStr.push(data[i].reference.substr(3, 2));
+                        data[i]["chr"] = sortStr[i];
+                        gene.push(data[i]);
+                    };
+                    gene.sort(function(a, b) {
+                        return a.chr - b.chr
+                    });
+                })
+            console.log('gene', gene)
 
-        const gene = [];
-        fetch(geneRequest).then((response) => {
-          response.json().then((data) => {
-            const angle = new Array;
-            const sortStr = new Array;
+            const receiveFusion = await d3.json('http://localhost:3000/data/fusion.json')
+            console.log('fusion', receiveFusion)
 
-            for (let i = 0; i < data.length; i++) {
-              angle.push(Number(data[i].end) - Number(data[i].start));
-              data[i]["size"] = angle[i];
-    
-              sortStr.push(data[i].reference.substr(3, 2));
-              data[i]["chr"] = sortStr[i];
-              gene.push(data[i]);
-            }
-            gene.sort(function (a, b) {
-              return a.chr - b.chr
-            });
-          });
-        });
-        console.log('gene data', gene)
+            const data = [];
+            data.push(gene)
+            data.push(receiveFusion)
+            console.log(data)
+        }
+        readJsonData()
+            // let geneRequest = new Request('http://localhost:3000/data/gene.json', {
+            //     method: 'GET'
+            // });
 
-        let fusionRequest = new Request('http://localhost:3000/data/fusion.json', {
-            method: 'GET'
-        });
+        // const gene = [];
+        // fetch(geneRequest).then((response) => {
+        //   response.json().then((data) => {
+        //     const angle = new Array;
+        //     const sortStr = new Array;
 
-        const fusion = [];
-        fetch(fusionRequest).then((response) => {
-          response.json().then((data) => {
-            for(let i = 0; i<data.length; i++) {
-              fusion.push(data[i]);
-            }
-            data.forEach( d => {
-              if(d.junctionReadCount > 1 && d.spanningFragCount > 1) {
-                console.log(d.fusionName)
-              }
-            });
-            fusion.slice()
-          });
-        });
-        console.log('fusion data', fusion[0])
+        //     for (let i = 0; i < data.length; i++) {
+        //       angle.push(Number(data[i].end) - Number(data[i].start));
+        //       data[i]["size"] = angle[i];
 
+        //       sortStr.push(data[i].reference.substr(3, 2));
+        //       data[i]["chr"] = sortStr[i];
+        //       gene.push(data[i]);
+        //     }
+        //     gene.sort(function (a, b) {
+        //       return a.chr - b.chr
+        //     });
+        //   });
+        // });
+        // console.log('gene data', gene)
+
+        // let fusionRequest = new Request('http://localhost:3000/data/fusion.json', {
+        //     method: 'GET'
+        // });
+
+        // const fusion = [];
+        // fetch(fusionRequest).then((response) => {
+        //     response.json().then((data) => {
+        //         for (let i = 0; i < data.length; i++) {
+        //             fusion.push(data[i]);
+        //         }
+        //         data.forEach(d => {
+        //             if (d.junctionReadCount > 1 && d.spanningFragCount > 1) {
+        //                 console.log(d.fusionName)
+        //             }
+        //         });
+        //         fusion.slice()
+        //     });
+        // });
     </script>
 </body>
 
