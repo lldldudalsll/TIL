@@ -1,6 +1,5 @@
 const fs = require('fs');
 const lineReader = require('line-reader');
-const d3 = require('d3');
 const content = fs.readFileSync('./public/data/gene.json');
 
 module.exports = function(app) {
@@ -10,11 +9,6 @@ module.exports = function(app) {
     const str1 = [];
     // make gene.json
     lineReader.eachLine('./public/data/gene.txt', function(line, last) {
-      // console.log(line)
-      // if(count === 0) { // column
-      //   // str1.menu = filterGeneFirstLine(line)
-      //   str1[count] = filterGeneItems(line)
-      // }
       str1[geneCount] = filterGeneItems(line);
       geneCount ++; // increase number of line
 
@@ -36,7 +30,7 @@ module.exports = function(app) {
       });
     }
 
-    // 컬럼 부분 json 으로 컨버팅
+    // Converting to json that column part
     function filterGeneFirstLine(line) {
       const arr = line.split('\t');
       console.log('arr list', arr)
@@ -83,7 +77,7 @@ module.exports = function(app) {
       });
     }
 
-    // 컬럼 부분 json 으로 컨버팅
+    // Converting to json that column part
     function filterFusionFirstLine(line) {
       const arr = line.split('\t');
       console.log('arr list', arr)
