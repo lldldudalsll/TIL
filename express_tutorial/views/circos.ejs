@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
   </head>
 
@@ -14,6 +15,7 @@
       async function readJsonData() {
         // const data = [];
         // const receiveGene = await d3.json('http://localhost:3000/data/gene.json')
+        // console.log('gene', receiveGene)
         //   .then((d) => {
         //     const angle = new Array;
         //     const sortStr = new Array;
@@ -63,7 +65,7 @@
           const t_name = [];
           
           fusionData.forEach((d) => {
-            if(d.junctionReadCount > 1 && d.spanningFragCount > 1) {
+            if(d.junctionReadCount > 0 && d.spanningFragCount > 0) {
               fusion.push(d);
               s_id.push(d.leftBreakPoint.split(':')[0]);
               s_bp.push(d.leftBreakPoint.split(':')[1]);
@@ -97,68 +99,91 @@
         return fusion;
       }
       readJsonData().then(async(d)=> {
-        const GRCh37 = await d3.json('http://localhost:3000/data/GRCh37.json')
-        const drawCircos = (GRCh37, d) => {
-          const width = 800
+        const gene = await d3.json('http://localhost:3000/data/gene.json')
+        
+        // remove duplicate gene
+        const uniqGene = _.uniq(gene, 'label');
+
+        // sorting gene
+        uniqGene.map((d) => {
+          d["chromo"] = d.chr.substr(3, 2);
+          if(!d.chromo === ('X' || 'Y')) {
+            d["chromo"] = Number(d.chr.substr(3, 2));
+          }
+          return d
+        });
+        uniqGene.sort(function(a, b) {
+          return a.chromo - b.chromo
+        });
+        console.log('uniqGene', uniqGene);
+
+        // draw circos chart
+        const drawCircos = (uniqGene, d) => {
+          const width = 800;
+          // create circos instance
           const circos = new Circos({
             container: '#chordChart',
             width: width,
             height: width
           });
-          // console.log('fusion', d);
+
+          // format fusion data
           d = d.map(function (d) {
             return {
               source: {
-                id: d.source_id,
-                start: parseInt(d.source_breakpoint) - 2000000,
-                end: parseInt(d.source_breakpoint) + 2000000,
+                id: d.source_name,
+                start: parseInt(d.source_breakpoint) - 20000,
+                end: parseInt(d.source_breakpoint) + 20000,
                 name: d.source_name
               },
               target: {
-                id: d.target_id,
-                start: parseInt(d.target_breakpoint) - 2000000,
-                end: parseInt(d.target_breakpoint) + 2000000,
+                id: d.target_name,
+                start: parseInt(d.target_breakpoint) - 20000,
+                end: parseInt(d.target_breakpoint) + 20000,
                 name: d.target_name
               }
             }
           })
-
+          // config circos layout
           circos
-            .layout(GRCh37,
+            .layout(uniqGene,
             {
               innerRadius: width/2 - 100,
-              outerRadius: width/2 - 60,
+              outerRadius: width/2 - 90,
+              // gap: 0.06,
               // cornerRadius: 5,
               labels: {
-                radialOffset: 70
+                display: true,
+                size: 8,
+                color: '#181818',
+                radialOffset: 90,
               },
               ticks: {
-                display: true,
-                labelDenominator: 1000000
+                display: false,
+                color: '#181818',
+                labelSize: 10
               }
             })
             .chords('l1', d,
             {
               radius: function (d) {
-                if (d.source.id === 'chr1') {
+                if (d.source_name === 'ABL2') {
                   return 0.5
                 } else {
                   return null
                 }
               },
-              logScale: false,
-              opacity: 0.3,
+              opacity: 0.7,
               color: '#ff5722',
               tooltipContent: function (d) {
-                return '<h3>' + d.source.id + ': ' + d.source.name + ' ➤ ' + d.target.id + ': ' + d.target.
-                  name + '</h3>'
+                return '<h3>' + d.source.id + ' ➤ ' + d.target.id + '</h3>'
               },
             })
             .render()
         }
-        drawCircos(GRCh37, d);
+        drawCircos(uniqGene, d);
         // d3.queue()
-        //   .defer(d3.json, 'http://localhost:3000/data/GRCh37.json')
+        //   .defer(d3.json, 'http://localhost:3000/data/gene.json')
         //   .defer(d3.json, 'http://localhost:3000/data/gene.json')
         //   .await(drawCircos)
       });

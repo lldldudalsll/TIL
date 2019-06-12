@@ -1,6 +1,5 @@
 const fs = require('fs');
 const lineReader = require('line-reader');
-const content = fs.readFileSync('./public/data/gene.json');
 
 module.exports = function(app) {
   app.get('/', function(req, res) {
@@ -41,13 +40,17 @@ module.exports = function(app) {
       const arr = line.split('\t');
       const gene = {};
       if(arr.length === 6) {
-        gene.geneName = arr[0],
-        gene.reference = arr[1],
+        gene.label = arr[0],
+        gene.id = arr[0],
+        gene.chr = arr[1],
         gene.strand = arr[2],
-        gene.start = arr[3],
-        gene.end = arr[4],
+        gene.len = Number(arr[4]) - Number(arr[3]),
+        // gene.end = Number(arr[4]),
         gene.target = arr[5]
       }
+      // gene.sort(function (a, b) {
+      //   return a.chr - b.chr
+      // });
       return gene
     }
 
