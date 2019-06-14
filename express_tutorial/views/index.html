@@ -89,6 +89,9 @@
           .attr("fill", d => color(d.target.index))
           .attr("stroke", d => d3.rgb(color(d.target.index)).darker())
           .attr('transform', `translate(${width/2}, ${height/2})`)
+
+      const a = d3.selectAll('g')._groups
+      console.log('asd', a)
     </script>
     <div class="report">
       <p>report download</p>
