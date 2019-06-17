@@ -10,10 +10,10 @@
   </head>
 
   <body>
-    <div id="chordChart"></div>
+    <div id="circos"></div>
     <script>
       async function readJsonData() {
-        const geneData = await d3.json('http://localhost:3000/data/gene.json')
+        const gene = await d3.json('http://localhost:3000/data/gene.json')
         const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
         // console.log('fusion', fusionData)
         // forEach 의 return value 는 undefined, 
@@ -25,12 +25,13 @@
           d['target_id'] = d.rightBreakpoint.split(':')[0];
           d['target_name'] = d.fusionName.split('--')[1];
 
-          for(let g = 0; g < geneData.length; g++) {
-            if(d.source_name === geneData[g].label) {
-              d['source_breakpoint'] = geneData[g].len / 2
+          for(let g = 0; g < gene.length; g++) {
+            if(d.source_name === gene[g].label) {
+              d['source_breakpoint'] = gene[g].len / 2
+              d['size'] = gene[g].len
             }
-            if(d.target_name === geneData[g].label) {
-              d['target_breakpoint'] = geneData[g].len / 2
+            if(d.target_name === gene[g].label) {
+              d['target_breakpoint'] = gene[g].len / 2
             }
           }
           return fusionData;
@@ -42,10 +43,15 @@
             fusion.push(d);
           }
         });
-        return fusion;
+        return { 
+          gene, 
+          fusion,
+          fusionData
+        };
       }
       readJsonData().then(async(d)=> {
-        const gene = await d3.json('http://localhost:3000/data/gene.json')
+        const { gene, fusion, fusionData } = d;
+        console.log('data', d)
 
         // sorting gene
         gene.map((d) => {
@@ -58,6 +64,9 @@
             d.num = Number(d.chr.substr(3, 2));
             d.num = 24
           }
+          if(d.len < 50000) {
+            d.len = 50000;
+          }
         });
         gene.sort(function(a, b) {
           return a.num - b.num
@@ -67,99 +76,173 @@
         const drawCircos = (gene, d) => {
           const width = 800;
           // create circos instance
-          const circos = new Circos({
-            container: '#chordChart',
-            width: width,
-            height: width
-          });
+          // const circos = new Circos({
+          //   container: '#circos',
+          //   width: width,
+          //   height: width
+          // });
           // format fusion data
-          d = d.map(function (d) {
+          // console.log('start d', d)
+          // d = d.map(function (d) {
+          //   return {
+          //     source: {
+          //       id: d.source_name,
+          //       startAngle: parseInt(d.source_breakpoint) - 10000,
+          //       endAngle: parseInt(d.source_breakpoint) + 10000,
+          //       name: d.source_name,
+          //       chr: d.source_id
+          //     },
+          //     target: {
+          //       id: d.target_name,
+          //       startAngle: parseInt(d.target_breakpoint) - 10000,
+          //       endAngle: parseInt(d.target_breakpoint) + 10000,
+          //       name: d.target_name,
+          //       chr: d.target_id
+          //     }
+          //   }
+          // });
+          d = d.map((d) => {
             return {
-              source: {
-                id: d.source_name,
-                start: parseInt(d.source_breakpoint) - 10000,
-                end: parseInt(d.source_breakpoint) + 10000,
-                name: d.source_name,
-                chr: d.source_id
-              },
-              target: {
-                id: d.target_name,
-                start: parseInt(d.target_breakpoint) - 10000,
-                end: parseInt(d.target_breakpoint) + 10000,
-                name: d.target_name,
-                chr: d.target_id
-              }
+              name: d.source_name,
+              size: d.size,
+              imports: [d.target_name]
             }
+          })
+          console.log('d', d)
+
+          const indexByName = new Map;
+          const nameByIndex = new Map;
+          const matrix = []
+          let n = 0;
+
+          d.forEach(d => {
+            if (!indexByName.has(d = d.name)) {
+              nameByIndex.set(n, d);
+              indexByName.set(d, n++);
+            }
+          })
+
+          d.forEach(d => {
+            const source = indexByName.get(d.name);
+            let row = matrix[source];
+            if (!row) row = matrix[source] = Array.from({length: n}).fill(0);
+            d.imports.forEach(d => row[indexByName.get(d)]++);
           });
 
+          console.log('matrix', matrix)
           console.log('fusion data', d)
+
+          const arcLabel = (() => {
+            const radius = Math.min(width, width) / 2 * 0.9;
+            return d3.arc().innerRadius(radius).outerRadius(radius);
+          })();   
+          
+          const arc = d3.arc()
+            .innerRadius(width/2 - 100)
+            .outerRadius(width/2 - 90)
+            .padAngle(0.01)
+
+          // console.log(arc)
+
+          const chord = d3.chord()
+          const chords = chord(matrix)
+          console.log('chord', chords)
+
+          const pie = d3.pie()
+            .sort((a, b) => a.num - b.num)
+            .value(d => d.len)
+
+          const arcs = pie(gene)
+
+          console.log('arcs', arcs)
+          
+          const svg = d3.select('#circos').append('svg')
+            .style('width', width)
+            .style('height', width)
+            .attr('text-anchor', 'middle')
+          
+          const g = svg.append('g')
+            .attr('transform', `translate(${width/2}, ${width/2})`)
+            .append('g')
+            .attr('class', 'cs_layout')
+            .style('z-index', '100')
+
+          const groups = g.selectAll('g').data(arcs).join('g')
+            .attr('class', d => d.data.label)
+            .attr('opacity', '1')
+
+          groups.append('path').attr('d', arc)
+
+          const makeAngle = (d) => {
+            // const angle = (d.startAngle + d.endAngle) / 2;
+            const k = (d.endAngle - d.startAngle) / d.value;
+            const angle = d.value * k + d.startAngle;
+            return angle
+          }
+
+          const text = groups.append('text')
+            // .attr('transform', d => `rotate(${(makeAngle(d) * 180 / Math.PI - 90)}) translate(${arcLabel.centroid(d)})`)
+            .attr('transform', d => `translate(${arcLabel.centroid(d)})`)
+            .style('font-size', '11px')
+            .attr('dy', '.35em')  
+            .text(d => d.data.label)
+          
+          const ribbon = d3.ribbon()
+            .radius(width / 2)
+
+          // svg.append('g')
+          //   .attr('fill-opacity', 0.67)
+          //   .selectAll('path')
+          //   .data(d)
+          //   .join('path')
+          //   .attr('d', ribbon)
+          //   .attr('fill', '#ff5722')
+            // .attr('transform', `translate(${width/2}, ${width/2})`)
+
+          
           // config circos layout
-          circos
-            .layout(gene,
-            {
-              innerRadius: width/2 - 100,
-              outerRadius: width/2 - 90,
-              // gap: 0.06,
-              // cornerRadius: 5,
-              labels: {
-                display: false,
-                size: 10,
-                color: '#181818',
-                radialOffset: 40
-              },
-              ticks: {
-                display: false,
-                color: '#181818',
-                labelSize: 10
-              }
-            })
-            .chords('l1', d,
-            {
-              radius: function (d) {
-                if (d.source_name === 'ABL2') {
-                  return 0.5
-                } else {
-                  return null
-                }
-              },
-              opacity: 0.7,
-              color: '#ff5722',
-              tooltipContent: function (d) {
-                return '<h3>' + d.source.id + ' ➤ ' + d.target.id + '</h3>'
-              },
-            })
-            .render()
+          // circos
+          //   .layout(gene,
+          //   {
+          //     innerRadius: width/2 - 100,
+          //     outerRadius: width/2 - 90,
+          //     // gap: 0.06,
+          //     // cornerRadius: 5,
+          //     labels: {
+          //       display: true,
+          //       size: 10,
+          //       color: '#181818',
+          //       radialOffset: 40
+          //     },
+          //     ticks: {
+          //       display: false,
+          //       color: '#181818',
+          //       labelSize: 10
+          //     }
+          //   })
+          //   .chords('l1', d,
+          //   {
+          //     radius: function (d) {
+          //       if (d.source_name === 'ABL2') {
+          //         return 0.5
+          //       } else {
+          //         return null
+          //       }
+          //     },
+          //     opacity: 0.7,
+          //     color: '#ff5722',
+          //     tooltipContent: function (d) {
+          //       return '<h3>' + d.source.id + ' ➤ ' + d.target.id + '</h3>'
+          //     },
+          //   })
+          //   .render()
         }
-        drawCircos(gene, d);
+        drawCircos(gene, fusion);
         // d3.queue()
         //   .defer(d3.json, 'http://localhost:3000/data/gene.json')
         //   .defer(d3.json, 'http://localhost:3000/data/gene.json')
         //   .await(drawCircos)
 
-        console.log('data', gene);
-
-        function labelGroups(d) {
-          const k = (d.end - d.start) / d.len
-          return d3.range(0, d.value).map(value => {
-            return {
-              value: value, 
-              angle: value * k + d.startAngle
-            };
-          })
-        }
-        const labelArc = d3.arc()
-          .innerRadius(340)
-          .outerRadius(350)
-          .startAngle((gene) => gene.start)
-          .endAngle((gene) => gene.end)
-        const cs_layout = d3.select('.cs-layout').selectAll('g')
-          .append('g')
-            .data(gene => labelGroups(gene))
-          // .attr('id', (d) => 'label' + d.id)
-            .attr('transform', 'rotate(10) translate(0, 0)')
-          .append('text')
-        // cs_layout.attr('transform', 'rotate(-90) translate(100, 0)')
-        // console.log(cs_layout._groups)
       });
     </script>
   </body>
