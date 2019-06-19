@@ -32,7 +32,7 @@ module.exports = function(app) {
     // Converting to json that column part
     function filterGeneFirstLine(line) {
       const arr = line.split('\t');
-      console.log('arr list', arr)
+      // console.log('arr list', arr)
       return arr;
     }
 
@@ -48,9 +48,6 @@ module.exports = function(app) {
         // gene.end = Number(arr[4]),
         gene.target = arr[5]
       }
-      // gene.sort(function (a, b) {
-      //   return a.chr - b.chr
-      // });
       return gene
     }
 
@@ -75,15 +72,14 @@ module.exports = function(app) {
         if(err) {
           return console.log(err)
         }
-
-        console.log('The Fusion file is saved successfully')
+        console.log('The Fusion file saved successfully')
       });
     }
 
-    // Converting to json that column part
+    // Converting to json
     function filterFusionFirstLine(line) {
       const arr = line.split('\t');
-      console.log('arr list', arr)
+      // console.log('arr list', arr)
       return arr;
     }
 
@@ -115,19 +111,21 @@ module.exports = function(app) {
         fusion.pfam_right = arr[21]
       }
       // console.log(fusion)
-      return fusion
+      return fusion;
     }
     
     res.render('index.html')
   });
 
-
+  // routing
   app.get('/circos',function(req, res) {
-
     res.render('circos', {
       title: 'Circos'
     })
-
   });
+
+  app.get('/exon', (req, res) => {
+    res.render('exon')
+  })
   
 }

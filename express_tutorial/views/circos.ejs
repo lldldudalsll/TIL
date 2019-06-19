@@ -4,8 +4,6 @@
     <title><%= title %></title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
   </head>
 
@@ -36,21 +34,21 @@
           }
           return fusionData;
         });
+        // console.log(fusionData)
         
         const fusion = [];
         fusionData.forEach((d) => {
-          if(d.junctionReadCount > 0 && d.spanningFragCount > 0) {
+          if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
             fusion.push(d);
           }
         });
         return { 
           gene, 
-          fusion,
-          fusionData
+          fusion
         };
       }
       readJsonData().then(async(d)=> {
-        const { gene, fusion, fusionData } = d;
+        const { gene, fusion } = d;
         // console.log('data', d)
 
         // sorting gene
@@ -78,6 +76,16 @@
             width: width,
             height: width
           });
+          // define def for arrow representation
+          const arrow = d3.select('svg').append('defs').append('marker')
+            .attr('id', 'arrow')
+            .attr('viewBox', '0 0 120 120')
+            .attr('refX', 115)
+            .attr('refY', 115)
+            .attr('orient', 'auto')
+            .append('path')
+            .attr('d', 'M2,2 L10,6 L2,10 L6,6 L2,2')
+            .style('fill', '#ff5722')
           // format fusion data
           d = d.map(function (d) {
             return {
@@ -118,7 +126,7 @@
             })
             .chords('l1', d,
             {
-              opacity: 0.5,
+              opacity: 0.7,
               color: '#ff5722',
               tooltipContent: function (d) {
                 return '<h3>' + d.source.id + ' ➤ ' + d.target.id + '</h3>'
@@ -126,35 +134,34 @@
             })
             .render()
           // end circos object
+          const a = d3.selectAll('.chord')
+            .style('marker-end', 'url(#arrow)')
         }
         // Call drawCircos
         drawCircos(gene, fusion);
 
-        // New layout for transfer label location
+        // New layout for change label location
         const width = 800;
-        const arcLabel = (() => {
-          const radius = Math.min(width, width) / 2 * 0.9;
-          return d3.arc().innerRadius(radius).outerRadius(radius);
-        })();
+
+        const makeAngle = (d) => {
+          const k = ((d.end - d.start) / 2) / d.len ;
+          const angle = d.len * k + d.start;
+          return angle
+        }
            
         const layout = d3.select('.cs-layout').selectAll('g').data(gene).join('g')
           .attr('class', d => d.label)
           .attr('opacity', '1')
-
-        const makeAngle = (d) => {
-          // console.log('makeAngle', d)
-          const k = ((d.end - d.start) / 2) / d.len ;
-          const angle = d.len * k + d.start;
-          // console.log(k)
-          // console.log('angle', angle)
-          return angle
-        }
         
-        const text = layout.append('text')
-          .attr('transform', d => makeAngle(d) > Math.PI ? `rotate(${makeAngle(d) * 180 / Math.PI - 90}) translate(330, 0)` : `rotate(${makeAngle(d) * 180 / Math.PI - 90}) translate(330, 0)`)
-          .text(d => d.label)
-          .style('font-size', '11px')
+        const g = layout.append('g')
+          .attr('transform', d => `rotate(${makeAngle(d) * 180 / Math.PI - 90}) translate(330, 0)`)
+
+        const text = g.append('text')
           .attr('dy', '.35em')
+          .attr("transform", d => makeAngle(d) > Math.PI ? "rotate(180) translate(0)" : null)
+          .attr("text-anchor", d => makeAngle(d) > Math.PI ? 'end' : null)
+          .style('font-size', '11px')
+          .text(d => d.label)
         // end circos
       })
 

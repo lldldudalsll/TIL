@@ -1,4 +1,39 @@
 body {
-  /* background-color: black;
-  color: #ffffff;  */
+  font-family: Lato,'Helvetica Neue',Helvetica,Arial,sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  height: 80px;
+  border-bottom: 1px solid #181818
+}
+
+.header p {
+  padding-top: 20px;
+  font-size: 24px;
+  text-align: center;
+}
+
+h1 {
+  text-align: center;
+}
+
+.diagrams {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
+}
+
+.circos, .exon {
+  margin-top: 100px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #181818;
+  text-align: center;
+  font-size: 50;
+}
+
+button{
+  cursor: pointer;
 }

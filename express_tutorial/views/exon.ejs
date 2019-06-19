@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <link rel="stylesheet" href="css/exon.css">
+</head>
+<body>    
+    <div id="exon">
+
+    </div>
+    <script>
+        async function readJsonData() {
+        
+            const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
+            console.log(fusionData)
+            fusionData.map((d) => {
+                d['source_id'] = d.leftBreakPoint.split(':')[0];
+                d['source_name'] = d.fusionName.split('--')[0];
+                d['source_strand'] = d.leftBreakPoint.split(':')[2]
+                d['target_id'] = d.rightBreakpoint.split(':')[0];
+                d['target_name'] = d.fusionName.split('--')[1];
+                d['target_strand'] = d.rightBreakpoint.split(':')[2]
+
+                return fusionData;
+            });
+            const fusion = [];
+            fusionData.forEach((d) => {
+                if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
+                    fusion.push(d);
+                }
+            });
+            console.log('fusion', fusion);
+
+            const ul = document.createElement('ul');
+            document.getElementById('exon').append(ul);
+
+            for(let i = 0; i < fusion.length; i++) {
+                const li = document.createElement('li');
+                document.querySelector('ul').append(li);
+                const order = document.querySelectorAll('li');
+                order[i].textContent = `Fusion ${i + 1} : ${fusion[i].fusionName}`;
+                const button = document.createElement('button');
+                button.textContent = 'Show Exon Diagram'
+                order[i].append(button)
+
+                const pushButton = document.querySelectorAll('button')
+                console.log(pushButton)
+                pushButton[i].onclick = drawExonDiagram(fusion[i].source_name, fusion[i].cds_left_id, fusion[i].source_strand, fusion[i].target_name, fusion[i].cds_right_id, fusion[i].target_strand)
+            }
+            
+            function drawExonDiagram (left_name, left_transcript, left_strand, right_name, right_transcript, right_strand ) {
+                // fusion 다이어그램용 데이터
+                // leftGene: 왼쪽 유전자
+                // rightGene: 오른쪽 유전자
+                var data = {
+                    leftGene: {
+                        name: left_name,
+                        transcript: left_transcript,
+                        strand: left_strand,
+                        exon: "9/20"
+                    },
+                    rightGene: {
+                        name: right_name,
+                        transcript: right_transcript,
+                        strand: right_strand,
+                        exon: "2/10"
+                    }
+                }
+                //최대로 표시할 Exon의 개수
+                const maxDisplayExonNum = 4;
+                //최대로 표시할 삭제된 Exon의 개수
+                const maxDeletedExonNum = 2;
+                //왼쪽 유전자의 최대 Exon 개수
+                const leftGeneTotalExonNum = +(data.leftGene.exon.split('/')[1]);
+                // 왼쪽 유전자의 퓨전이 발생한 Exon 번호 
+                const leftGeneTargetExonNum = +(data.leftGene.exon.split('/')[0]);
+                // 오른쪽 유전자의 최대 Exon 개수
+                const rightGeneTotalExonNum = +(data.rightGene.exon.split('/')[1]);
+                // 오른쪽 유전자의 퓨전이 발생한 Exon 번호 
+                const rightGeneTargetExonNum = +(data.rightGene.exon.split('/')[0]);
+                /*
+                * 퓨전 다이어그램에 표시할 엑손 목록을 생성하는 함수
+                * geneTotalExonNum: 유전자의 최대 엑손 개수
+                * geneTargetExonNum: 유전자의 퓨전 발생 엑손 번호
+                * maxDisplayExonNum: 화면에 표시할 엑손의 개수
+                * maxDeletedExonListNum: 화면에 표시할 삭제된 엑손의 개수
+                * leftOrRight: 퓨젼 유전자의 위치(left OR right)
+                * @return {
+                    displayExonList: string[], 표시할 엑손 배열
+                    deletedExonList: string[] 삭제로 표시할 엑손 배렬}
+                */
+                function getDisplayExonList(geneTotalExonNum, geneTargetExonNum, maxDisplayExonNum, maxDeletedExonListNum, leftOrRight) {
+                    let geneExonList = new Array(geneTotalExonNum).fill(0).map((d, i) => `E${i + 1}`);
+                    let displayExonList;
+                    let deletedExonList;
+                    if (leftOrRight === 'left') {
+                        displayExonList = geneExonList.slice(Math.max(0, geneTargetExonNum - maxDisplayExonNum), geneTargetExonNum);
+                        deletedExonList = geneExonList.slice(geneTargetExonNum, Math.min(geneTotalExonNum, geneTargetExonNum + maxDeletedExonListNum));
+                    } else {
+                        displayExonList = geneExonList.slice(geneTargetExonNum - 1, Math.min(geneTotalExonNum, geneTargetExonNum + maxDisplayExonNum) - 1);
+                        deletedExonList = geneExonList.slice(Math.max(0, geneTargetExonNum - maxDeletedExonListNum), geneTargetExonNum - 1);                
+                    }
+                    return {displayExonList: displayExonList, deletedExonList: deletedExonList};
+                }
+                // 왼쪽 유전자 엑손 목록 생성
+                var leftGeneExonListData = getDisplayExonList(leftGeneTotalExonNum, leftGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'left');
+                // 오른족 유전자 엑손 목록 생성
+                var rightGeneExonListData = getDisplayExonList(rightGeneTotalExonNum, rightGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'right');
+                console.log(leftGeneExonListData);
+                console.log(rightGeneExonListData);
+                
+                //텍스트 폰트명
+                const fontFamily = 'Courier New';
+                // 유전자 라벨 높이
+                const geneLabelHeight = 20;
+                // 유전자 라벨 폰트 크기
+                const geneLabelFontSize = 15;
+                // 엑손 박스 넓이
+                const exonWidth = 40;
+                // 엑손 박스 높이
+                const exonHeight = 15;
+                // 엑손 박스 간 간격
+                const exonMargin = 5;
+                // 엑손 박스 테두리 폭
+                const exonStrokeWidth = 2;
+                // 유전자 사이 간격
+                const geneEmptySpaceWidth = 200;
+                // 엑손 텍스트 폰트 크기
+                const exonFontSize = 10;
+                // 엑손 라벨의 왼쪽 마진
+                const exonLabelMarginLeft = 5;
+                // 엑손 라벨의 상단 마진
+                const exonLabelMarginTop = 10;
+                // 엑손 목록 위아래 사이 간격
+                const fusionGeneLayerEmptySpaceHeight = 20;
+                // 왼쪽 유전자 엑손 연결 라인색
+                const leftGeneBoxLineColor = 'rgb(46,117,182)';
+                // 왼쪽 유전자 엑손 박스 배경색
+                const leftGeneBoxBackColor = 'rgb(91,155,213)';
+                // 왼쪽 유전자 삭제된 엑손 박스 배경색
+                const deletedLeftExonBackColor = 'rgb(189,215,238)';
+                // 왼쪽 유전자박스 테두리색
+                const leftGeneBoxBorderColor = 'rgb(63,113,156)';
+                // 왼쪽 유전자 삭제된 엑손 테두리 색
+                const deletedLeftExonBorderColor = 'rgb(157,195,230)';
+                // 오른쪽 유전자 엑손 연결 라인 색상
+                const rightGeneBoxLineColor = 'rgb(197,90,17)';
+                // 오른쪽 유전자 엑손 박스 배경색
+                const rightGeneBoxBackColor = 'rgb(237,125,49)';
+                // 오른쪽 유전자 삭제된 엑손 박스 배경색
+                const deletedRightExonBackColor = 'rgb(248,203,173)';
+                // 오른쪽 유전자박스 테두리색
+                const rightGeneBoxBorderColor = 'rgb(174,90,33)';
+                // 오른쪽 유전자 삭제된 엑손 테두리 색
+                const deletedRightExonBorderColor = 'rgb(244,177,131)';
+                // 엑손 텍스트 색
+                const exonTextColor = 'rgb(255,255,255)';
+                // 하단 엑손 목록 왼쪽 마진
+                const fusionGeneLeftMargin = geneEmptySpaceWidth / 2;
+                
+                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '200')
+                //왼쪽 유전자명 라벨
+                svg.append('g').append('text')
+                    .text(`${data.leftGene.name}:${data.leftGene.transcript}(${data.leftGene.strand})`)
+                    .attr('x', '5').attr('y', '15').attr('font-size', `${geneLabelFontSize}`)
+                    .attr('font-weight', 'bold')
+                    .attr('font-family', fontFamily);
+                // 오른쪽 유전자명 라벨
+                svg.append('g').append('text')
+                    .text(`${data.rightGene.name}:${data.rightGene.transcript}(${data.rightGene.strand})`)
+                    .attr('transform', `translate(${exonStrokeWidth + (leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)) - exonMargin + geneEmptySpaceWidth})`)
+                    .attr('x', '5')
+                    .attr('y', '15')
+                    .attr('font-size', `${geneLabelFontSize}`)
+                    .attr('font-weight', 'bold')
+                    .attr('font-family', fontFamily);
+                // 왼쪽 유전자 엑손 연결 라인 그룹 컨테이너 추가(엑손 박스 중간 높이로 좌표 이동)
+                const geneBox1Line = svg.append('g')
+                    .attr('transform', `translate(0 ${geneLabelHeight + (exonHeight / 2) + exonStrokeWidth})`)
+                geneBox1Line.append('line').attr('stroke', leftGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length - exonMargin}`);
+                // 왼쪽 유전자 엑손 박스 표시용 좌표 변환(유전자 라벨 아래로 이동)
+                var geneBox1Layer = svg.append('g').attr('transform', `translate(0 ${geneLabelHeight})`)
+                    .attr('x', `${exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)}`).attr('height', `${exonWidth + 5}`);
+                // 왼쪽 유전자 엑손 박스 추가
+                geneBox1Layer.selectAll('rect').data(leftGeneExonListData.displayExonList).enter().append('rect')
+                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                    .style('fill', leftGeneBoxBackColor).style('stroke', leftGeneBoxBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                // 왼쪽 유전자 엑손 텍스트 추가
+                geneBox1Layer.selectAll('text').data(leftGeneExonListData.displayExonList).enter().append('text')
+                    .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
+                    .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
+                    .attr('font-family', fontFamily);
+                // 삭제된 엑손 목록을 표시할 수 있을 경우에 표시
+                if(leftGeneExonListData.deletedExonList.length > 0) {
+                    // 왼쪽 유전자 삭제된 엑손 박스 그룹 컨테이너 추가
+                    var deletedExonBoxList1Layer = svg.append('g').attr('transform', `translate(${exonStrokeWidth + (exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length} ${geneLabelHeight})`)
+                        .attr('x', `${exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                        .attr('width', `${leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)}`).attr('height', `${exonWidth + 5}`);
+                    // 왼쪽 유전자 삭제된 엑손 박스 추가
+                    deletedExonBoxList1Layer.selectAll('rect').data(leftGeneExonListData.deletedExonList).enter().append('rect')
+                        .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                        .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                        .style('fill', deletedLeftExonBackColor).style('stroke', deletedLeftExonBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                    // 왼쪽 유전자 삭제된 엑손 텍스트 추가
+                    deletedExonBoxList1Layer.selectAll('text').data(leftGeneExonListData.deletedExonList).enter().append('text')
+                        .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                        .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
+                        .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
+                        .attr('font-family', fontFamily);
+                }    
+                // 오른쪽 유전자 엑손 연결 라인 그룹 컨테이너 추가(엑손 박스 중간 높이로 좌표 이동)
+                const geneBox2Line = svg.append('g')
+                    .attr('transform', `translate(${((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + geneEmptySpaceWidth + exonStrokeWidth} ${geneLabelHeight + (exonHeight / 2) + exonStrokeWidth})`);
+                geneBox2Line.append('line').attr('stroke', rightGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth + exonMargin) *
+                        rightGeneExonListData.displayExonList.length - exonMargin}`);
+                // 오른쪽 유전자 엑손 박스 표시 좌표 이동(유전자 라벨 아래로 이동)
+                var geneBox2Layer = svg.append('g')
+                    .attr('transform', `translate(${exonStrokeWidth + (leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)) - exonMargin +
+                        geneEmptySpaceWidth} ${geneLabelHeight})`)
+                    .attr('x', `${exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${rightGeneExonListData.displayExonList.length * (exonWidth + exonMargin)}`).attr('height', `${exonHeight + exonStrokeWidth}`);
+                // 오른쪽 유전자 엑손 박스 추가
+                geneBox2Layer.selectAll('rect').data(rightGeneExonListData.displayExonList).enter().append('rect')
+                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                    .style('fill', rightGeneBoxBackColor).style('stroke', rightGeneBoxBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                // 오른쪽 유전자 엑손 텍스트 추가
+                geneBox2Layer.selectAll('text').data(rightGeneExonListData.displayExonList).enter().append('text')
+                    .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
+                    .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
+                    .attr('font-family', fontFamily);
+                // 오른쪽 유전자 삭제된 엑손 목록이 있을 경우 표시
+                if (rightGeneExonListData.deletedExonList.length > 0) {
+                    // 유전자의 삭제된 엑속 목록을 표시할 좌표로 이동(오른쪽 유전자 시작 부분에서 삭제된 유전자의 엑손 목록 크기만큼 왼쪽으로 이동)
+                    var deletedExonBoxList2Layer = svg.append('g')
+                        .attr('transform', `translate(${exonStrokeWidth + ((leftGeneExonListData.displayExonList.length - rightGeneExonListData.deletedExonList.length) * (exonWidth + exonMargin)) - exonMargin +
+                            geneEmptySpaceWidth} ${geneLabelHeight})`)
+                        .attr('x', `${exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                        .attr('width', `${rightGeneExonListData.deletedExonList.length * (exonWidth + exonMargin)}`).attr('height', `${exonHeight + exonStrokeWidth}`);
+                    // 오른쪽 유전자의 삭제된 엑손 목록 표시
+                    deletedExonBoxList2Layer.selectAll('rect').data(rightGeneExonListData.deletedExonList).enter().append('rect')
+                        .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                        .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                        .style('fill', deletedRightExonBackColor).style('stroke', deletedRightExonBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                    // 오른쪽 유전자의 삭제된 엑손 텍스트 추가
+                    deletedExonBoxList2Layer.selectAll('text').data(rightGeneExonListData.deletedExonList).enter().append('text')
+                        .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                        .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
+                        .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
+                        .attr('font-family', fontFamily);    
+                }
+                // 하단의 왼쪽 유전자 엑손 연결 라인 좌표 이동
+                const fusionGeneBox1Line = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin} ${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight + exonHeight / 2 + exonStrokeWidth })`)
+                // 하단의 왼쪽 유전자 엑손 연결 라인 추가
+                fusionGeneBox1Line.append('line').attr('stroke', leftGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth + exonMargin) *
+                        leftGeneExonListData.displayExonList.length - exonMargin}`);
+                // 하단의 오른쪽 유전자 엑손 연결 라인 그룹 컨테이너 추가
+                const fusionGeneBox2Line = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin} ${geneLabelHeight + exonHeight +
+                        fusionGeneLayerEmptySpaceHeight + exonHeight / 2 + exonStrokeWidth })`)
+                // 하단의 왼쪽 유전자 엑손 연결 라인 추가
+                fusionGeneBox2Line.append('line').attr('stroke', rightGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth +
+                        exonMargin) *
+                        rightGeneExonListData.displayExonList.length - exonMargin}`);
+                // 하단의 왼쪽 유전자의 엑손 박스를 표시하기 위한 그룹 컨테이너 추가
+                const fusionGeneBox1Layer = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin} ${geneLabelHeight + exonHeight +
+                    fusionGeneLayerEmptySpaceHeight})`)
+                    .attr('x', '100').attr('y', `${exonStrokeWidth}`)
+                // 하단의 왼쪽 유전자의 엑손 박스 추가
+                fusionGeneBox1Layer.selectAll('rect').data(leftGeneExonListData.displayExonList).enter().append('rect')
+                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                    .style('fill', leftGeneBoxBackColor).style('stroke', leftGeneBoxBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                // 하단의 오른쪽 유전자의 엑손 박스를 표시하기 위한 그룹 컨테이너 추가
+                const fusionGeneBox2Layer = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin + (exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length -
+                    exonMargin} ${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight})`)
+                    .attr('x', '100').attr('y', `${exonStrokeWidth}`)
+                // 하단의 왼쪽 유전자의 엑손 박스 추가
+                fusionGeneBox2Layer.selectAll('rect').data(rightGeneExonListData.displayExonList).enter().append('rect')
+                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth * 2}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                    .style('fill', rightGeneBoxBackColor).style('stroke', rightGeneBoxBorderColor).style('stroke-width', `${exonStrokeWidth}`);
+                // 하단의 왼쪽 유전자 엑손 텍스트 표시용 그룹 컨테이너 추가
+                const fusionGeneText1Layer = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin + exonWidth / 5} ${geneLabelHeight + exonHeight +
+                    fusionGeneLayerEmptySpaceHeight + exonHeight / 1.2})`)
+                fusionGeneText1Layer.selectAll('text').data(leftGeneExonListData.displayExonList).enter().append('text')
+                    .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i)}`)
+                    .attr('font-family', fontFamily);
+
+                const fusionGeneText2Layer = svg.append('g')
+                    .attr('transform', `translate(${fusionGeneLeftMargin + exonWidth / 5 + (exonWidth + exonMargin) *
+                        leftGeneExonListData.displayExonList.length - exonMargin} ${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight + exonHeight / 1.2})`)
+                fusionGeneText2Layer.selectAll('text').data(rightGeneExonListData.displayExonList).enter().append('text')
+                    .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
+                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i)}`)
+                    .attr('font-family', fontFamily);
+                // 왼쪽 퓨전 엑손 박스간 연결 라인용 그룹 컨테이너 추가
+                const fusionGeneBoxToBox1Line = svg.append('g')
+                // 왼쪽 퓨전 엑손 박스간 연결 라인 그리기
+                fusionGeneBoxToBox1Line.append('line')
+                    .attr('stroke', leftGeneBoxLineColor)
+                    .attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('stroke-dasharray', '5')
+                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin - (exonWidth / 2)}`)
+                    .attr('y1', `${geneLabelHeight + exonHeight + (exonStrokeWidth * 2)}`)
+                    .attr('x2', `${fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin -
+                        (exonWidth / 2)}`)
+                    .attr('y2', `${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight}`);
+                // 오른쪽 퓨전 엑손 박스간 연결 라인용 그룹 컨테이너 추가
+                const fusionGeneBoxToBox2Line = svg.append('g')
+                // 오른쪽 퓨전 엑손 박스간 연결 라인 그리기
+                fusionGeneBoxToBox2Line.append('line')
+                    .attr('stroke', rightGeneBoxLineColor)
+                    .attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('stroke-dasharray', '5')
+                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + geneEmptySpaceWidth + (exonWidth / 2)}`)
+                    .attr('y1', `${geneLabelHeight + (exonStrokeWidth * 2) + exonHeight}`)
+                    .attr('x2', `${fusionGeneLeftMargin + exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + (exonWidth / 2)}`)
+                    .attr('y2', `${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight}`);
+            }
+        }
+        readJsonData()
+
+        
+    </script>
+</body>
+</html>

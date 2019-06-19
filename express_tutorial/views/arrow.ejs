@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>Exon</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script> -->
+  </head>
+  <body>
+    <!-- <h1>Exon Diagram</h1> -->
+    <script>
+      const width = 350
+      const svg = d3.select('body')
+        .append('svg')
+          .attr('width', width)
+          .attr('height', width)
+
+      const marker = svg.append('defs').append('marker')
+        .attr('id', 'arrow')
+        .attr('viewBox', '0 0 12 12')
+        .attr('refX', 5)
+        .attr('refY', 5)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M 0 0 L 10 6 L 0 10 Z')
+        .style('fill', '#ff5722')
+
+      const path = svg.append('path')
+        .attr('d', 'M50,50 L150,150')
+        .style('marker-end', 'url(#arrow)')
+        .style('fill', 'red')
+    </script>
+  </body>
+</html>
