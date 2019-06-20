@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Exon</title>
     <script src="https://d3js.org/d3.v5.js"></script>
     <link rel="stylesheet" href="css/exon.css">
 </head>
@@ -16,16 +16,34 @@
         async function readJsonData() {
         
             const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
-            console.log(fusionData)
-            fusionData.map((d) => {
-                d['source_id'] = d.leftBreakPoint.split(':')[0];
-                d['source_name'] = d.fusionName.split('--')[0];
-                d['source_strand'] = d.leftBreakPoint.split(':')[2]
-                d['target_id'] = d.rightBreakpoint.split(':')[0];
-                d['target_name'] = d.fusionName.split('--')[1];
-                d['target_strand'] = d.rightBreakpoint.split(':')[2]
+            const jnuData = await d3.json('http://localhost:3000/data/jnu_hem_r.json')
+            console.log('fusionData', fusionData)
+            console.log('jnuData', jnuData);
 
-                return fusionData;
+            // 중복제거 방법
+            // const a = jnuData.reduce((d, current) => {
+            //     console.log('dddddd', d)
+            //     console.log('current', current)
+            //     const x = d.find(item => item.transcript === current.transcript);
+            //     if(!x) {
+            //         return d.concat([current])
+            //     } else {
+            //         return d
+            //     }
+            // }, [])
+
+            fusionData.map((d) => {
+                console.log(d.left_tx_exon.split('|')[0].split(':'))
+                // console.log(d.left_tx_exon)
+                // d['source_id'] = d.leftBreakPoint.split(':')[0];
+                // d['source_name'] = d.fusionName.split('--')[0];
+                // d['source_strand'] = d.leftBreakPoint.split(':')[2]
+                // d['source_exon'] = d.left_tx_exon.split(':')[1].substring(4) + '/' + String(Number(d.left_tx_exon.split(':')[1].substring(4)) + 1)
+                // d['target_id'] = d.rightBreakpoint.split(':')[0];
+                // d['target_name'] = d.fusionName.split('--')[1];
+                // d['target_strand'] = d.rightBreakpoint.split(':')[2]
+                // d['target_exon'] = d.right_tx_exon.split(':')[1].substring(4) + '/' + String(Number(d.right_tx_exon.split(':')[1].substring(4)) + 1)
+                // return fusionData;
             });
             const fusion = [];
             fusionData.forEach((d) => {
@@ -33,26 +51,42 @@
                     fusion.push(d);
                 }
             });
-            console.log('fusion', fusion);
 
-            const ul = document.createElement('ul');
-            document.getElementById('exon').append(ul);
+            // const asd = jnuData.filter((d) => {
+            //   for(let i=0; i<fusion.length; i++) {
+            //       return fusion[i].cds_left_id === d.transcript
+            //   }  
+            // })
+            // console.log('test', asd)
+
+            // const ul = document.createElement('ul');
+            // document.getElementById('exon').append(ul);
 
             for(let i = 0; i < fusion.length; i++) {
-                const li = document.createElement('li');
-                document.querySelector('ul').append(li);
-                const order = document.querySelectorAll('li');
-                order[i].textContent = `Fusion ${i + 1} : ${fusion[i].fusionName}`;
-                const button = document.createElement('button');
-                button.textContent = 'Show Exon Diagram'
-                order[i].append(button)
+                // const li = document.createElement('li');
+                // document.querySelector('ul').append(li);
+                // const order = document.querySelectorAll('li');
+                // order[i].textContent = `Fusion ${i + 1} : ${fusion[i].fusionName}`;
+                // const button = document.createElement('button');
+                // button.textContent = 'Show Exon Diagram'
+                // order[i].append(button)
 
-                const pushButton = document.querySelectorAll('button')
-                console.log(pushButton)
-                pushButton[i].onclick = drawExonDiagram(fusion[i].source_name, fusion[i].cds_left_id, fusion[i].source_strand, fusion[i].target_name, fusion[i].cds_right_id, fusion[i].target_strand)
+                // const pushButton = document.querySelectorAll('button')
+                // console.log(pushButton)
+                // pushButton[i].onclick = 
+                drawExonDiagram(
+                    fusion[i].source_name, 
+                    fusion[i].cds_left_id, 
+                    fusion[i].source_strand, 
+                    fusion[i].source_exon, 
+                    fusion[i].target_name, 
+                    fusion[i].cds_right_id, 
+                    fusion[i].target_strand, 
+                    fusion[i].target_exon
+                )
             }
             
-            function drawExonDiagram (left_name, left_transcript, left_strand, right_name, right_transcript, right_strand ) {
+            function drawExonDiagram (left_name, left_transcript, left_strand, left_exon, right_name, right_transcript, right_strand, right_exon) {
                 // fusion 다이어그램용 데이터
                 // leftGene: 왼쪽 유전자
                 // rightGene: 오른쪽 유전자
@@ -61,13 +95,13 @@
                         name: left_name,
                         transcript: left_transcript,
                         strand: left_strand,
-                        exon: "9/20"
+                        exon: left_exon
                     },
                     rightGene: {
                         name: right_name,
                         transcript: right_transcript,
                         strand: right_strand,
-                        exon: "2/10"
+                        exon: right_exon
                     }
                 }
                 //최대로 표시할 Exon의 개수
@@ -110,8 +144,8 @@
                 var leftGeneExonListData = getDisplayExonList(leftGeneTotalExonNum, leftGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'left');
                 // 오른족 유전자 엑손 목록 생성
                 var rightGeneExonListData = getDisplayExonList(rightGeneTotalExonNum, rightGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'right');
-                console.log(leftGeneExonListData);
-                console.log(rightGeneExonListData);
+                // console.log(leftGeneExonListData);
+                // console.log(rightGeneExonListData);
                 
                 //텍스트 폰트명
                 const fontFamily = 'Courier New';

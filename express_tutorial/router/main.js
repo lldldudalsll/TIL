@@ -4,6 +4,57 @@ const lineReader = require('line-reader');
 module.exports = function(app) {
   app.get('/', function(req, res) {
 
+    /** 
+    *
+    * JNU_HEM_R
+    * 
+    **/
+    let jnuCount = 0;
+    const str0 = [];
+    // make gene.json
+    lineReader.eachLine('./public/data/jnu_hem_r.txt', function(line, last) {
+      str0[jnuCount] = filterJnuItems(line);
+      jnuCount ++; // increase number of line
+
+      if(last) {
+        console.log(' === gene parsing is done ! === ');
+        str0.shift();
+        makeJnuFile(JSON.stringify(str0)); // Save string format, Not object
+      }
+    });
+
+    // function to save file
+    function makeJnuFile(str) {
+      fs.writeFile("./public/data/jnu_hem_r.json", str, function(err) {
+        if(err) {
+          return console.log(err)
+        }
+
+        console.log('The jnu_hem_r file is saved successfully')
+      });
+    }
+
+    function filterJnuItems(line) {
+      const arr = line.split('\t');
+      const jnu = {};
+      if(arr.length === 7) {
+        jnu.chr = arr[0],
+        jnu.start = arr[1],
+        jnu.end = arr[2],
+        jnu.gene = arr[3],
+        jnu.strand = arr[4],
+        jnu.exon = Number(arr[5]),
+        jnu.transcript = arr[6]
+      }
+
+      return jnu
+    }
+
+    /**
+    *
+    * GENE
+    * 
+    **/
     let geneCount = 0;
     const str1 = [];
     // make gene.json
@@ -39,18 +90,23 @@ module.exports = function(app) {
     function filterGeneItems(line) {
       const arr = line.split('\t');
       const gene = {};
-      if(arr.length === 6) {
+      if(arr.length === 5) {
         gene.label = arr[0],
         gene.id = arr[0],
         gene.chr = arr[1],
         gene.strand = arr[2],
-        gene.len = Number(arr[4]) - Number(arr[3]),
+        gene.len = Number(arr[4]) - Number(arr[3])
         // gene.end = Number(arr[4]),
-        gene.target = arr[5]
       }
       return gene
     }
 
+
+    /** 
+    *
+    * FUSION
+    * 
+    **/
     let fusionCount = 0;
     const str2 = [];
     // make fusion.json
