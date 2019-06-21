@@ -3,13 +3,16 @@
   <head>
     <title><%= title %></title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="js/circos.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/nightmare@3.0.2/lib/nightmare.min.js"></script> -->
   </head>
 
   <body>
     <div id="circos"></div>
     <script>
+      
       async function readJsonData() {
         const gene = await d3.json('http://localhost:3000/data/gene.json')
         const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
@@ -17,12 +20,69 @@
         // forEach 의 return value 는 undefined, 
         // map 은 콜백 함수의 결과 값들로 구성된 새로운 배열을 return
 
+        // const others = new Object
+        function Other(label, id, strand) {
+          this.label = label,
+          this.id = id,
+          this.chr = 'chrOthers',
+          this.strand = strand,
+          this.len = 350000
+        }
+
         fusionData.map((d) => {
           d['source_id'] = d.leftBreakPoint.split(':')[0];
           d['source_name'] = d.fusionName.split('--')[0];
+          d['source_strand'] = d.leftBreakPoint.split(':')[2];
           d['target_id'] = d.rightBreakpoint.split(':')[0];
           d['target_name'] = d.fusionName.split('--')[1];
+          d['target_strand'] = d.rightBreakpoint.split(':')[2];
 
+          // for(let g = 0; g < gene.length; g++) {
+          //   if(d.source_name === gene[g].label) {
+          //     d['source_breakpoint'] = gene[g].len / 2
+          //     d['size'] = gene[g].len
+          //   }
+          //   if(d.target_name === gene[g].label) {
+          //     d['target_breakpoint'] = gene[g].len / 2
+          //   }
+          // }
+          return fusionData;
+        });
+        
+        const fusion = [];
+        fusionData.forEach((d) => {
+          if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
+            fusion.push(d);
+          }
+        });
+        // console.log(gene)
+        
+        fusion.forEach((d) => {
+          const source = gene.find(item => item.label === d.source_name)
+          // console.log('aaa', a)
+          const target = gene.find(item => item.label === d.target_name)
+          // console.log('bbb', b)
+          // !a || (a && a.length === 0)
+          if(!source) {
+            // console.log('d.sourcename', d.source_name)
+            gene.push(new Other(d.source_name, d.source_name, d.source_strand))
+          } 
+          if(!target) {
+            // console.log(d.target_name)
+            gene.push(new Other(d.target_name, d.target_name, d.target_strand))
+          } 
+        })
+
+        return { 
+          gene, 
+          fusion
+        };
+      }
+      readJsonData().then(async(d)=> {
+        const { gene, fusion } = d;
+        console.log('data', d)
+
+        fusion.forEach(d => {
           for(let g = 0; g < gene.length; g++) {
             if(d.source_name === gene[g].label) {
               d['source_breakpoint'] = gene[g].len / 2
@@ -32,24 +92,7 @@
               d['target_breakpoint'] = gene[g].len / 2
             }
           }
-          return fusionData;
-        });
-        // console.log(fusionData)
-        
-        const fusion = [];
-        fusionData.forEach((d) => {
-          if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
-            fusion.push(d);
-          }
-        });
-        return { 
-          gene, 
-          fusion
-        };
-      }
-      readJsonData().then(async(d)=> {
-        const { gene, fusion } = d;
-        console.log('data', d)
+        })
 
         // sorting gene
         gene.map((d) => {
@@ -61,6 +104,14 @@
           if(d.num === 'Y') {
             d.num = Number(d.chr.substr(3, 2));
             d.num = 24
+          }
+          if(d.num === 'Un') {
+            d.num = Number(d.chr.substr(3, 2));
+            d.num = 25
+          }
+          if(d.num === 'Ot') {
+            d.num = Number(d.chr.substr(3, 2));
+            d.num = 26
           }
         });
         gene.sort(function(a, b) {

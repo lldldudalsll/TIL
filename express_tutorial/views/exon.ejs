@@ -20,44 +20,49 @@
             console.log('fusionData', fusionData)
             console.log('jnuData', jnuData);
 
-            // 중복제거 방법
-            // const a = jnuData.reduce((d, current) => {
-            //     console.log('dddddd', d)
-            //     console.log('current', current)
-            //     const x = d.find(item => item.transcript === current.transcript);
-            //     if(!x) {
-            //         return d.concat([current])
-            //     } else {
-            //         return d
-            //     }
-            // }, [])
+            // 중복제거
+            const match_data = [];
+            jnuData.forEach(d => {
+                const left_exon = fusionData.find(i => i.cds_left_id === d.transcript)
+
+                if(left_exon) {
+                    match_data.push(left_exon)
+                }
+            })
+
+            console.log('match_data', match_data)
 
             fusionData.map((d) => {
-                console.log(d.left_tx_exon.split('|')[0].split(':'))
-                // console.log(d.left_tx_exon)
-                // d['source_id'] = d.leftBreakPoint.split(':')[0];
-                // d['source_name'] = d.fusionName.split('--')[0];
-                // d['source_strand'] = d.leftBreakPoint.split(':')[2]
-                // d['source_exon'] = d.left_tx_exon.split(':')[1].substring(4) + '/' + String(Number(d.left_tx_exon.split(':')[1].substring(4)) + 1)
-                // d['target_id'] = d.rightBreakpoint.split(':')[0];
-                // d['target_name'] = d.fusionName.split('--')[1];
-                // d['target_strand'] = d.rightBreakpoint.split(':')[2]
-                // d['target_exon'] = d.right_tx_exon.split(':')[1].substring(4) + '/' + String(Number(d.right_tx_exon.split(':')[1].substring(4)) + 1)
-                // return fusionData;
+                // console.log(d.left_tx_exon.split('|')[0].split(':')[1].substring(4))
+                // d.left_tx_exon = d.left_tx_exon.split('|')[0].split(':')[1]
+                // if(d.left_tx_exon === undefined) {
+                //     d.left_tx_exon = 'exon0'
+                // }
+
+                // d.right_tx_exon = d.right_tx_exon.split('|')[0].split(':')[1]
+                // if(d.right_tx_exon === undefined) {
+                //     d.right_tx_exon = 'exon0'
+                // }
+                
+                // console.log(typeof(d.left_tx_exon))
+                // // console.log(d.left_tx_exon)
+                d['source_id'] = d.leftBreakPoint.split(':')[0];
+                d['source_name'] = d.fusionName.split('--')[0];
+                d['source_strand'] = d.leftBreakPoint.split(':')[2]
+                // d['source_exon'] = d.left_tx_exon.substring(4) + '/' + String(Number(d.left_tx_exon.substring(4)) + 1)
+                d['target_id'] = d.rightBreakpoint.split(':')[0];
+                d['target_name'] = d.fusionName.split('--')[1];
+                d['target_strand'] = d.rightBreakpoint.split(':')[2]
+                // d['target_exon'] = d.right_tx_exon.substring(4) + '/' + String(Number(d.right_tx_exon.substring(4)) + 1)
+                return fusionData;
             });
+            console.log(fusionData)
             const fusion = [];
             fusionData.forEach((d) => {
                 if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
                     fusion.push(d);
                 }
             });
-
-            // const asd = jnuData.filter((d) => {
-            //   for(let i=0; i<fusion.length; i++) {
-            //       return fusion[i].cds_left_id === d.transcript
-            //   }  
-            // })
-            // console.log('test', asd)
 
             // const ul = document.createElement('ul');
             // document.getElementById('exon').append(ul);
@@ -95,13 +100,13 @@
                         name: left_name,
                         transcript: left_transcript,
                         strand: left_strand,
-                        exon: left_exon
+                        exon: '9/20'
                     },
                     rightGene: {
                         name: right_name,
                         transcript: right_transcript,
                         strand: right_strand,
-                        exon: right_exon
+                        exon: '6/13'
                     }
                 }
                 //최대로 표시할 Exon의 개수
