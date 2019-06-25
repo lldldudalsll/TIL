@@ -22,6 +22,7 @@
 
             // jnu_hem_r 에서 같은 transcript 중복제거 후 
             // 가장 큰 exon 소팅하여 fusionData에 key: value로 넣어준다
+            // target이 없는 경우 예외처리 및 총 액손 수 지정할 수 있도록
             let left_exon = [];
             let right_exon = [];
             fusionData.forEach(d => {
@@ -64,8 +65,6 @@
                     }
                 }
             })
-            // console.log('left_exon', left_exon)
-            // console.log('right_exon', right_exon)
 
             fusionData.map((d) => {
                 d['source_id'] = d.leftBreakPoint.split(':')[0];
@@ -94,14 +93,18 @@
                     fusion[i].cds_left_id, 
                     fusion[i].source_strand, 
                     fusion[i].source_exon, 
+                    fusion[i].leftBreakPoint,
                     fusion[i].target_name, 
                     fusion[i].cds_right_id, 
                     fusion[i].target_strand, 
-                    fusion[i].target_exon
+                    fusion[i].target_exon,
+                    fusion[i].rightBreakpoint,
+                    fusion[i].fusion_cds,
+                    fusion[i].fusion_transl
                 )
             }
             
-            function drawExonDiagram (left_name, left_transcript, left_strand, left_exon, right_name, right_transcript, right_strand, right_exon) {
+            function drawExonDiagram (left_name, left_transcript, left_strand, left_exon, left_break_point, right_name, right_transcript, right_strand, right_exon, right_break_point, fusion_cds, fusion_transl) {
                 // fusion 다이어그램용 데이터
                 // leftGene: 왼쪽 유전자
                 // rightGene: 오른쪽 유전자
@@ -110,14 +113,18 @@
                         name: left_name,
                         transcript: left_transcript,
                         strand: left_strand,
-                        exon: left_exon
+                        exon: left_exon,
+                        bp: left_break_point
                     },
                     rightGene: {
                         name: right_name,
                         transcript: right_transcript,
                         strand: right_strand,
-                        exon: right_exon
-                    }
+                        exon: right_exon,
+                        bp: right_break_point
+                    },
+                    cds: fusion_cds,
+                    transl: fusion_transl 
                 }
                 //최대로 표시할 Exon의 개수
                 const maxDisplayExonNum = 4;
@@ -185,7 +192,7 @@
                 // 엑손 라벨의 상단 마진
                 const exonLabelMarginTop = 10;
                 // 엑손 목록 위아래 사이 간격
-                const fusionGeneLayerEmptySpaceHeight = 20;
+                const fusionGeneLayerEmptySpaceHeight = 80;
                 // 왼쪽 유전자 엑손 연결 라인색
                 const leftGeneBoxLineColor = 'rgb(46,117,182)';
                 // 왼쪽 유전자 엑손 박스 배경색
@@ -210,8 +217,10 @@
                 const exonTextColor = 'rgb(255,255,255)';
                 // 하단 엑손 목록 왼쪽 마진
                 const fusionGeneLeftMargin = geneEmptySpaceWidth / 2;
+                // 하단 CDS TranSL 연결선
+                const LineColorTranSL = 'rgb(127,127,127)';
                 
-                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '200')
+                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '200').style('margin-bottom', '30px')
                 //왼쪽 유전자명 라벨
                 svg.append('g').append('text')
                     .text(`${data.leftGene.name}:${data.leftGene.transcript}(${data.leftGene.strand})`)
@@ -367,10 +376,9 @@
                     .attr('stroke', leftGeneBoxLineColor)
                     .attr('stroke-width', `${exonStrokeWidth}`)
                     .attr('stroke-dasharray', '5')
-                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin - (exonWidth / 2)}`)
+                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin - (exonWidth / 2) + 20}`)
                     .attr('y1', `${geneLabelHeight + exonHeight + (exonStrokeWidth * 2)}`)
-                    .attr('x2', `${fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin -
-                        (exonWidth / 2)}`)
+                    .attr('x2', `${fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin - (exonWidth / 2) + 22}`)
                     .attr('y2', `${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight}`);
                 // 오른쪽 퓨전 엑손 박스간 연결 라인용 그룹 컨테이너 추가
                 const fusionGeneBoxToBox2Line = svg.append('g')
@@ -379,10 +387,30 @@
                     .attr('stroke', rightGeneBoxLineColor)
                     .attr('stroke-width', `${exonStrokeWidth}`)
                     .attr('stroke-dasharray', '5')
-                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + geneEmptySpaceWidth + (exonWidth / 2)}`)
+                    .attr('x1', `${exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + geneEmptySpaceWidth + (exonWidth / 2) - 20}`)
                     .attr('y1', `${geneLabelHeight + (exonStrokeWidth * 2) + exonHeight}`)
-                    .attr('x2', `${fusionGeneLeftMargin + exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + (exonWidth / 2)}`)
+                    .attr('x2', `${fusionGeneLeftMargin + exonStrokeWidth + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + (exonWidth / 2) - 18}`)
                     .attr('y2', `${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight}`);
+                // 퓨전 엑손 박스 중앙 하단 연결선
+                const fusionGeneLineForTranSL = svg.append('g')
+                fusionGeneLineForTranSL.append('line')
+                    .attr('stroke', LineColorTranSL)
+                    .attr('stroke-width', `${exonStrokeWidth}`)
+                    .attr('x1', fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonStrokeWidth)
+                    .attr('y1', 116)
+                    .attr('x2', fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonStrokeWidth)
+                    .attr('y2', 220)
+                // 왼쪽 브레이크 포인트 텍스트 추가
+                const LeftBreakPoint = svg.append('g')
+                LeftBreakPoint.append('text')
+                    .text(`${data.leftGene.bp}`)
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 20).attr('y', '150').attr('font-size', '12')
+                    .attr('font-family', fontFamily);
+                const RightBreakPoint = svg.append('g')
+                LeftBreakPoint.append('text')
+                    .text(`${data.rightGene.bp}`)
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 100 ).attr('y', '150').attr('font-size', '12')
+                    .attr('font-family', fontFamily);
             }
         }
         readJsonData()
