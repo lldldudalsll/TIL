@@ -1,1 +1,16 @@
-<p>test works!</p>
+<h2>
+  Hello {{name}}
+  {{'2+2'}}
+</h2>
+<h2>
+  {{name.toUpperCase()}}
+</h2>
+
+<p>{{'window.location.href'}} - Do not use global JS variables and assign variables</p>
+<p>{{'siteUrl'}} -> {{siteUrl}}</p>
+
+<input [id]="myId" type="text" value="NgeneBio">
+<input [disabled]="isDisabled" [id]="myId" type="text" value="NgeneBio">
+
+<p>보간법은 string만 가능 property binding을 하기 위해선 위와같이 [disabled]="true" 이렇게 작성해주어야 한다.</p>
+<p>[disabled] 대신에 bind-disabled 로 사용할 수 있다.</p>
