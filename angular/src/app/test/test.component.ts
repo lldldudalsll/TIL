@@ -11,9 +11,20 @@ export class TestComponent implements OnInit {
   public siteUrl = window.location.href;
   public myId = 'testId';
   public isDisabled = true;
+
+  public greeting = ''
   constructor() { }
 
   ngOnInit() {
+  }
+
+  onClick(event) {
+    console.log(event)
+    this.greeting = 'Welcome to NgeneBio'
+  }
+
+  logMessage(value) {
+    console.log(value)
   }
 
 }

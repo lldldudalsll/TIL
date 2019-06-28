@@ -16,15 +16,16 @@
       async function readJsonData() {
         const gene = await d3.json('http://localhost:3000/data/gene.json')
         const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
+        const grc = await d3.json('http://localhost:3000/data/GRCh37.json')
         // console.log('fusion', fusionData)
         // forEach 의 return value 는 undefined, 
         // map 은 콜백 함수의 결과 값들로 구성된 새로운 배열을 return
 
         // const others = new Object
-        function Other(label, id, strand) {
+        function Other(label, id, chr, strand) {
           this.label = label,
           this.id = id,
-          this.chr = 'chrOthers',
+          this.chr = chr,
           this.strand = strand,
           this.len = 350000
         }
@@ -56,7 +57,7 @@
           }
         });
         // console.log(gene)
-        
+
         fusion.forEach((d) => {
           const source = gene.find(item => item.label === d.source_name)
           // console.log('aaa', a)
@@ -65,21 +66,22 @@
           // !a || (a && a.length === 0)
           if(!source) {
             // console.log('d.sourcename', d.source_name)
-            gene.push(new Other(d.source_name, d.source_name, d.source_strand))
+            gene.push(new Other(d.source_name, d.source_name, d.source_id, d.source_strand))
           } 
           if(!target) {
             // console.log(d.target_name)
-            gene.push(new Other(d.target_name, d.target_name, d.target_strand))
+            gene.push(new Other(d.target_name, d.target_name, d.target_id, d.target_strand))
           } 
         })
 
         return { 
           gene, 
-          fusion
+          fusion,
+          grc
         };
       }
       readJsonData().then(async(d)=> {
-        const { gene, fusion } = d;
+        const { gene, fusion, grc } = d;
         console.log('data', d)
 
         fusion.forEach(d => {
@@ -109,10 +111,10 @@
             d.num = Number(d.chr.substr(3, 2));
             d.num = 25
           }
-          if(d.num === 'Ot') {
-            d.num = Number(d.chr.substr(3, 2));
-            d.num = 26
-          }
+          // if(d.num === 'Ot') {
+          //   d.num = Number(d.chr.substr(3, 2));
+          //   d.num = 26
+          // }
         });
         gene.sort(function(a, b) {
           return a.num - b.num
@@ -127,16 +129,6 @@
             width: width,
             height: width
           });
-          // define def for arrow representation
-          const arrow = d3.select('svg').append('defs').append('marker')
-            .attr('id', 'arrow')
-            .attr('viewBox', '0 0 120 120')
-            .attr('refX', 115)
-            .attr('refY', 115)
-            .attr('orient', 'auto')
-            .append('path')
-            .attr('d', 'M2,2 L10,6 L2,10 L6,6 L2,2')
-            .style('fill', '#ff5722')
           // format fusion data
           d = d.map(function (d) {
             return {
@@ -156,7 +148,6 @@
               }
             }
           });
-
           // config circos layout
           circos
             .layout(gene,
@@ -185,8 +176,6 @@
             })
             .render()
           // end circos object
-          const a = d3.selectAll('.chord')
-            .style('marker-end', 'url(#arrow)')
         }
         // Call drawCircos
         drawCircos(gene, fusion);
@@ -213,6 +202,35 @@
           .attr("text-anchor", d => makeAngle(d) > Math.PI ? 'end' : null)
           .style('font-size', '11px')
           .text(d => d.label)
+
+        // New Circle for Chr Order
+        // transform gene data
+
+        const chrCircle = d3.select('.all').append('g').attr('class', 'chr-circle')
+        
+        const arc = d3.arc()
+          .innerRadius(290)
+          .outerRadius(295)
+          .padAngle(0.01)
+        const pie = d3.pie()
+          .value(d => d.len)
+        
+        const arcs = pie(grc)
+
+        console.log(arcs)
+
+        const arcLabel = (() => {
+          const radius = (width / 2) * 0.65;
+          return d3.arc().innerRadius(radius).outerRadius(radius);
+        })();
+        const a = chrCircle.selectAll('path').data(arcs).enter().append('g')
+        a.append('path').attr('d', arc).attr('fill', '#181818').style('opacity', 0.2)
+        const texx = a.append('text').data(arcs).attr('transform', d => `translate(${arcLabel.centroid(d)})`)
+        
+        texx.append('tspan').data(grc)
+          .style('font-size', '12')
+          .attr('text-anchor', 'middle')
+          .text(d => d.id)
         // end circos
       })
 

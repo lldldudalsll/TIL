@@ -14,3 +14,10 @@
 
 <p>보간법은 string만 가능 property binding을 하기 위해선 위와같이 [disabled]="true" 이렇게 작성해주어야 한다.</p>
 <p>[disabled] 대신에 bind-disabled 로 사용할 수 있다.</p>
+
+<!-- Special parameter of angular Dom & capture event => ($event) -->
+<button (click)="onClick($event)">PUSH</button> 
+{{greeting}}
+
+<input #myInput type="text">
+<button (click)="logMessage(myInput)">button</button>
