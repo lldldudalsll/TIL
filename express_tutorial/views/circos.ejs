@@ -203,34 +203,84 @@
           .style('font-size', '11px')
           .text(d => d.label)
 
-        // New Circle for Chr Order
+        // New Chr Circle
         // transform gene data
+        const chrData = [];
+        gene.forEach(d => {
+          const chrObject = {
+            chr: d.chr,
+            len: d.len
+          }
+          chrData.push(chrObject)
+        })
+        console.log('chrData', chrData)
 
-        const chrCircle = d3.select('.all').append('g').attr('class', 'chr-circle')
-        
-        const arc = d3.arc()
-          .innerRadius(290)
-          .outerRadius(295)
-          .padAngle(0.01)
-        const pie = d3.pie()
-          .value(d => d.len)
-        
-        const arcs = pie(grc)
+        const uniqChr = Array.from(new Set(chrData.map(d => d.chr)))
+        .map(i => {
+          return chrData.find(d => d.chr === i)
+        })
 
-        console.log(arcs)
+        console.log('uniqChr', uniqChr)
 
-        const arcLabel = (() => {
-          const radius = (width / 2) * 0.65;
-          return d3.arc().innerRadius(radius).outerRadius(radius);
-        })();
-        const a = chrCircle.selectAll('path').data(arcs).enter().append('g')
-        a.append('path').attr('d', arc).attr('fill', '#181818').style('opacity', 0.2)
-        const texx = a.append('text').data(arcs).attr('transform', d => `translate(${arcLabel.centroid(d)})`)
+        const asd = [];
+        for (let i = 0; i < uniqChr.length; i++) {
+          const vvv = chrData.find(d => {
+            if(uniqChr[i].chr === d.chr) {
+              asd.push(d.len)
+            }
+          })
+        }
+        console.log('asd', asd)
+
+        var chrNumber = [];
+        chrData.map(d => {
+          if(d.chr === 'chr1') {
+            chrNumber.push(d.len)
+            uniqChr.filter(i => {
+              i['len'] = sum(chrNumber)
+            })
+          }
+        })
+
+        console.log(sum(chrNumber))
         
-        texx.append('tspan').data(grc)
-          .style('font-size', '12')
-          .attr('text-anchor', 'middle')
-          .text(d => d.id)
+
+        // library func
+        function sum(array) {
+          let result = 0;
+          for (let i = 0; i < array.length; i++) {
+            result += array[i];
+          }
+          return result;
+        }
+
+
+        // example chr circle
+        // const chrCircle = d3.select('.all').append('g').attr('class', 'chr-circle')
+        
+        // const arc = d3.arc()
+        //   .innerRadius(290)
+        //   .outerRadius(295)
+        //   .padAngle(0.01)
+        // const pie = d3.pie()
+        //   .value(d => d.len)
+        
+        // const arcs = pie(grc)
+
+        // const arcLabel = (() => {
+        //   const radius = (width / 2) * 0.65;
+        //   return d3.arc().innerRadius(radius).outerRadius(radius);
+        // })();
+        // const a = chrCircle.selectAll('path').data(arcs).enter().append('g')
+        // a.append('path').attr('d', arc).attr('fill', '#181818').style('opacity', 0.2)
+        // const texx = a.append('text').data(arcs).attr('transform', d => `translate(${arcLabel.centroid(d)})`)
+        
+        // texx.append('tspan').data(grc)
+        //   .style('font-size', '12')
+        //   .attr('text-anchor', 'middle')
+        //   .text(d => d.id)
+
+
         // end circos
       })
 
