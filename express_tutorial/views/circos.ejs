@@ -16,7 +16,6 @@
       async function readJsonData() {
         const gene = await d3.json('http://localhost:3000/data/gene.json')
         const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
-        const grc = await d3.json('http://localhost:3000/data/GRCh37.json')
         // console.log('fusion', fusionData)
         // forEach 의 return value 는 undefined, 
         // map 은 콜백 함수의 결과 값들로 구성된 새로운 배열을 return
@@ -38,15 +37,6 @@
           d['target_name'] = d.fusionName.split('--')[1];
           d['target_strand'] = d.rightBreakpoint.split(':')[2];
 
-          // for(let g = 0; g < gene.length; g++) {
-          //   if(d.source_name === gene[g].label) {
-          //     d['source_breakpoint'] = gene[g].len / 2
-          //     d['size'] = gene[g].len
-          //   }
-          //   if(d.target_name === gene[g].label) {
-          //     d['target_breakpoint'] = gene[g].len / 2
-          //   }
-          // }
           return fusionData;
         });
         
@@ -56,32 +46,26 @@
             fusion.push(d);
           }
         });
-        // console.log(gene)
 
+        // 타겟에 없는 유전자 gene 데이터에 넣어주기 위한 코드
         fusion.forEach((d) => {
           const source = gene.find(item => item.label === d.source_name)
-          // console.log('aaa', a)
           const target = gene.find(item => item.label === d.target_name)
-          // console.log('bbb', b)
-          // !a || (a && a.length === 0)
           if(!source) {
-            // console.log('d.sourcename', d.source_name)
             gene.push(new Other(d.source_name, d.source_name, d.source_id, d.source_strand))
           } 
           if(!target) {
-            // console.log(d.target_name)
             gene.push(new Other(d.target_name, d.target_name, d.target_id, d.target_strand))
           } 
         })
 
         return { 
           gene, 
-          fusion,
-          grc
+          fusion
         };
       }
       readJsonData().then(async(d)=> {
-        const { gene, fusion, grc } = d;
+        const { gene, fusion } = d;
         console.log('data', d)
 
         fusion.forEach(d => {
@@ -111,10 +95,6 @@
             d.num = Number(d.chr.substr(3, 2));
             d.num = 25
           }
-          // if(d.num === 'Ot') {
-          //   d.num = Number(d.chr.substr(3, 2));
-          //   d.num = 26
-          // }
         });
         gene.sort(function(a, b) {
           return a.num - b.num
@@ -206,46 +186,36 @@
         // New Chr Circle
         // transform gene data
         const chrData = [];
-        gene.forEach(d => {
+        gene.map(d => {
           const chrObject = {
             chr: d.chr,
             len: d.len
           }
-          chrData.push(chrObject)
+          return chrData.push(chrObject)
         })
-        console.log('chrData', chrData)
+        // console.log('chrData', chrData)
 
         const uniqChr = Array.from(new Set(chrData.map(d => d.chr)))
         .map(i => {
           return chrData.find(d => d.chr === i)
         })
 
-        console.log('uniqChr', uniqChr)
-
-        const asd = [];
-        for (let i = 0; i < uniqChr.length; i++) {
-          const vvv = chrData.find(d => {
-            if(uniqChr[i].chr === d.chr) {
-              asd.push(d.len)
+        uniqChr.forEach(d => {
+          d["chr"] = d.chr.substr(0, 5);
+          let num = []
+          for (let i = 0; i < chrData.length; i++) {
+            if(d.chr === chrData[i].chr) {
+              num.push(chrData[i].len)
+              d['len'] = sum(num)
             }
-          })
-        }
-        console.log('asd', asd)
-
-        var chrNumber = [];
-        chrData.map(d => {
-          if(d.chr === 'chr1') {
-            chrNumber.push(d.len)
-            uniqChr.filter(i => {
-              i['len'] = sum(chrNumber)
-            })
+            if(d['len'] < 60000) {
+              d['len'] = 60000
+            }
           }
         })
+        console.log('uniqChr', uniqChr)
 
-        console.log(sum(chrNumber))
-        
-
-        // library func
+        // library, sum func
         function sum(array) {
           let result = 0;
           for (let i = 0; i < array.length; i++) {
@@ -254,32 +224,42 @@
           return result;
         }
 
-
         // example chr circle
-        // const chrCircle = d3.select('.all').append('g').attr('class', 'chr-circle')
+        const chrCircle = d3.select('.all').append('g').attr('class', 'chr-circle')
         
-        // const arc = d3.arc()
-        //   .innerRadius(290)
-        //   .outerRadius(295)
-        //   .padAngle(0.01)
-        // const pie = d3.pie()
-        //   .value(d => d.len)
-        
-        // const arcs = pie(grc)
+        const arc = d3.arc()
+          .innerRadius(290)
+          .outerRadius(295)
+          .padAngle(0.01)
 
-        // const arcLabel = (() => {
-        //   const radius = (width / 2) * 0.65;
-        //   return d3.arc().innerRadius(radius).outerRadius(radius);
-        // })();
-        // const a = chrCircle.selectAll('path').data(arcs).enter().append('g')
-        // a.append('path').attr('d', arc).attr('fill', '#181818').style('opacity', 0.2)
-        // const texx = a.append('text').data(arcs).attr('transform', d => `translate(${arcLabel.centroid(d)})`)
+        const pie = d3.pie()
+          .sort((e) => e.chr)
+          .value(d => d.len)
         
-        // texx.append('tspan').data(grc)
-        //   .style('font-size', '12')
-        //   .attr('text-anchor', 'middle')
-        //   .text(d => d.id)
+        const arcs = pie(uniqChr)
+        console.log(arcs)
 
+        const makeChrAngle = (d) => {
+          const k = ((d.endAngle - d.startAngle) / 2) / d.value ;
+          const angle = d.value * k + d.startAngle;
+          return angle
+        }
+
+        const a = chrCircle.selectAll('path').data(arcs).enter().append('g')
+        
+        a.append('path')
+          .attr('d', arc)
+          .attr('fill', '#181818')
+          .style('opacity', 0.2)
+       
+        const chr_g = a.append('g').data(arcs)
+          .attr('transform', d => `rotate(${makeChrAngle(d) * 180 / Math.PI - 90}) translate(270, 0)`)
+        
+        chr_g.append('text')
+          .style('font-size', '11')
+          .attr('text-anchor', 'middle')
+          .attr("transform", d => makeChrAngle(d) > Math.PI ? "rotate(180) translate(0)" : null)
+          .text(d => d.data.chr)
 
         // end circos
       })

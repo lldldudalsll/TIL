@@ -37,7 +37,7 @@ export class Test2Component implements OnInit {
   }
 
   fireEvent() {
-    this.childEvent.emit('Hey Guys fXXX off!')
+    this.childEvent.emit('Sons of Anarchy')
   }
 
 }
