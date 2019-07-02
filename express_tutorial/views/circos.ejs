@@ -204,6 +204,7 @@
 
         uniqChr.forEach(d => {
           d["chr"] = d.chr.substr(0, 5);
+          d["num"] = d.chr.substr(3, 2);
           let num = []
           for (let i = 0; i < chrData.length; i++) {
             if(d.chr === chrData[i].chr) {
