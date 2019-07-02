@@ -7,6 +7,7 @@
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/nightmare@3.0.2/lib/nightmare.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script> -->
   </head>
 
   <body>
@@ -83,6 +84,7 @@
         // sorting gene
         gene.map((d) => {
           d["num"] = d.chr.substr(3, 2);
+          d["chr"] = d.chr.substr(0, 5);
           if(d.num === 'X') {
             d.num = Number(d.chr.substr(3, 2));
             d.num = 23;
@@ -208,12 +210,21 @@
               num.push(chrData[i].len)
               d['len'] = sum(num)
             }
-            if(d['len'] < 60000) {
-              d['len'] = 60000
+          }
+        })
+        // console.log('uniqChr', uniqChr)
+
+        uniqChr.forEach(d => {
+          const test = [];
+          for (let i = 0; i < gene.length; i++) {
+            if(d.chr === gene[i].chr) {
+              test.push(gene[i].start)
+              test.push(gene[i].end)
+              d['startAngle'] = test[0]
+              d['endAngle'] = test[test.length - 1]
             }
           }
         })
-        console.log('uniqChr', uniqChr)
 
         // library, sum func
         function sum(array) {
@@ -230,18 +241,13 @@
         const arc = d3.arc()
           .innerRadius(290)
           .outerRadius(295)
-          .padAngle(0.01)
-
-        const pie = d3.pie()
-          .sort((e) => e.chr)
-          .value(d => d.len)
         
-        const arcs = pie(uniqChr)
+        const arcs = uniqChr
         console.log(arcs)
 
         const makeChrAngle = (d) => {
-          const k = ((d.endAngle - d.startAngle) / 2) / d.value ;
-          const angle = d.value * k + d.startAngle;
+          const k = ((d.endAngle - d.startAngle) / 2) / d.len ;
+          const angle = d.len * k + d.startAngle;
           return angle
         }
 
@@ -259,7 +265,7 @@
           .style('font-size', '11')
           .attr('text-anchor', 'middle')
           .attr("transform", d => makeChrAngle(d) > Math.PI ? "rotate(180) translate(0)" : null)
-          .text(d => d.data.chr)
+          .text(d => d.chr)
 
         // end circos
       })
