@@ -3,7 +3,6 @@
   <head>
     <title><%= title %></title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
-    <script src="js/circos.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/nightmare@3.0.2/lib/nightmare.min.js"></script> -->
@@ -83,6 +82,9 @@
 
         // sorting gene
         gene.map((d) => {
+          if(d.label === 'DUX4') {
+            d.chr = 'chr4'
+          }
           d["num"] = d.chr.substr(3, 2);
           d["chr"] = d.chr.substr(0, 5);
           if(d.num === 'X') {

@@ -17,9 +17,11 @@
     "ejs": "^2.6.1",
     "express": "^4.17.1",
     "line-reader": "^0.4.0",
+    "nightmare": "^3.0.2",
     "pm2": "^3.5.1",
     "shelljs": "^0.8.3",
-    "underscore": "^1.9.1"
+    "underscore": "^1.9.1",
+    "vo": "^4.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

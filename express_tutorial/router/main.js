@@ -1,5 +1,7 @@
 const fs = require('fs');
 const lineReader = require('line-reader');
+const Nightmare = require('nightmare');
+const vo = require('vo');
 
 module.exports = function(app) {
   app.get('/', function(req, res) {
