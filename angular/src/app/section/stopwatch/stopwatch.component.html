@@ -1,0 +1,10 @@
+<div class="title">
+  <div class="display">
+    <app-time-display></app-time-display>
+    <!-- <app-time-display [inputData]="parent"></app-time-display>
+    <app-buttons (clickEvent)="startTime($event)"></app-buttons> -->
+    <!-- 컴포넌트는 재사용 가능성이 있을때만 만들어주자. -->
+  </div>
+
+  <a [routerLink]="'/clock'">Move to Clock</a>
+</div>
