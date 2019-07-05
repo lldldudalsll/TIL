@@ -47,7 +47,7 @@
           }
         });
 
-        // 타겟에 없는 유전자 gene 데이터에 넣어주기 위한 코드
+        // 타겟에 없는 유전자 gene 데이터에 추가
         fusion.forEach((d) => {
           const source = gene.find(item => item.label === d.source_name)
           const target = gene.find(item => item.label === d.target_name)
@@ -104,7 +104,7 @@
           return a.num - b.num
         });
 
-        // draw circos chart
+        // draw circos plot
         const drawCircos = (gene, d) => {
           const width = 800;
           // create circos instance
@@ -217,6 +217,7 @@
         })
         // console.log('uniqChr', uniqChr)
 
+        // gene에서 chr의 start angle 과 end angle 가져오기
         uniqChr.forEach(d => {
           const test = [];
           for (let i = 0; i < gene.length; i++) {
@@ -229,7 +230,7 @@
           }
         })
 
-        // library, sum func
+        // sum func
         function sum(array) {
           let result = 0;
           for (let i = 0; i < array.length; i++) {
