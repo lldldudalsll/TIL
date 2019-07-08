@@ -21,6 +21,33 @@ export class TimeDisplayComponent implements OnInit {
   }
 
   ngOnInit() {
+    // 다시불릴 필요가 없는 메서드나 로직
+    // 한번 불려지고 끝
+  }
+
+  ngDoCheck() {
+    // 컴포넌트 내에서 움직임이 있으면 감지해서 로직을 실행. 여러번 불릴 수 있음.
+    // ex reset누를때마다
+  }
+
+  ngAfterContentInit() {
+
+  }
+
+  ngAfterContentChecked() {
+
+  }
+
+  ngAfterViewInit() {
+
+  }
+
+  ngAfterViewChecked() {
+
+  }
+
+  ngOnDestory() {
+
   }
 
   timeStart() {
