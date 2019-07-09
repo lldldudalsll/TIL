@@ -25,13 +25,33 @@
             // target이 없는 경우 예외처리 및 총 액손 수 지정할 수 있도록
             let left_exon = [];
             let right_exon = [];
+            
+            // fotmatting fusion_cds
+            function upperCase(string) {
+                const upper = [];
+                string.replace(/[A-Z]/g, (match) => {
+                    upper.push(match)
+                })
+                var upperString = upper.join('')
+                return upperString.substr(0, 15)
+            }
+            
+            function lowerCase(string) {
+                const lower = [];
+                var result = string.replace(/[a-z]/g, (upp, i, st) => {
+                    lower.push(upp)
+                })
+                var lowerString = lower.join('')
+                return lowerString.substr(lowerString.length - 15)
+            }
+            
             fusionData.forEach(d => {
                 const exception = []
                 const sample = {
                     exon: 20
                 }
                 for (let y = 0; y < 20; y++) {
-                    exception.push(sample)                  
+                    exception.push(sample)
                 }
 
                 if(jnuData.filter(i => i.transcript === d.cds_left_id).length === 0) {
@@ -69,12 +89,14 @@
             fusionData.map((d) => {
                 d['source_id'] = d.leftBreakPoint.split(':')[0];
                 d['source_name'] = d.fusionName.split('--')[0];
-                d['source_strand'] = d.leftBreakPoint.split(':')[2]
-                d['source_exon'] = d.left_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_source_exon)
+                d['source_strand'] = d.leftBreakPoint.split(':')[2];
+                d['source_exon'] = d.left_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_source_exon);
+                d['source_cds'] = lowerCase(d.fusion_cds).toUpperCase();
                 d['target_id'] = d.rightBreakpoint.split(':')[0];
                 d['target_name'] = d.fusionName.split('--')[1];
-                d['target_strand'] = d.rightBreakpoint.split(':')[2]
-                d['target_exon'] = d.right_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_target_exon)
+                d['target_strand'] = d.rightBreakpoint.split(':')[2];
+                d['target_exon'] = d.right_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_target_exon);
+                d['target_cds'] = upperCase(d.fusion_cds);
                 return fusionData;
             });
             // console.log(fusionData)
@@ -87,6 +109,11 @@
 
             console.log('fusion', fusion)
 
+            // var ss = fusion[0].fusion_cds
+            var ss = '123123123123123123'
+            var a = ss.replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,')
+            console.log(a)
+
             for(let i = 0; i < fusion.length; i++) {
                 drawExonDiagram(
                     fusion[i].source_name, 
@@ -94,17 +121,21 @@
                     fusion[i].source_strand, 
                     fusion[i].source_exon, 
                     fusion[i].leftBreakPoint,
+                    fusion[i].source_cds,
                     fusion[i].target_name, 
                     fusion[i].cds_right_id, 
                     fusion[i].target_strand, 
                     fusion[i].target_exon,
                     fusion[i].rightBreakpoint,
+                    fusion[i].target_cds,
                     fusion[i].fusion_cds,
                     fusion[i].fusion_transl
                 )
             }
             
-            function drawExonDiagram (left_name, left_transcript, left_strand, left_exon, left_break_point, right_name, right_transcript, right_strand, right_exon, right_break_point, fusion_cds, fusion_transl) {
+            function drawExonDiagram (
+                left_name, left_transcript, left_strand, left_exon, left_break_point, left_cds, 
+                right_name, right_transcript, right_strand, right_exon, right_break_point, right_cds, fusion_cds, fusion_transl) {
                 // fusion 다이어그램용 데이터
                 // leftGene: 왼쪽 유전자
                 // rightGene: 오른쪽 유전자
@@ -114,18 +145,22 @@
                         transcript: left_transcript,
                         strand: left_strand,
                         exon: left_exon,
-                        bp: left_break_point
+                        bp: left_break_point,
+                        cds: left_cds
                     },
                     rightGene: {
                         name: right_name,
                         transcript: right_transcript,
                         strand: right_strand,
                         exon: right_exon,
-                        bp: right_break_point
+                        bp: right_break_point,
+                        cds: right_cds
                     },
                     cds: fusion_cds,
                     transl: fusion_transl 
                 }
+
+                console.log('dataaaaaaaa', data)
                 //최대로 표시할 Exon의 개수
                 const maxDisplayExonNum = 4;
                 //최대로 표시할 삭제된 Exon의 개수
@@ -406,10 +441,23 @@
                     .text(`${data.leftGene.bp}`)
                     .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 20).attr('y', '150').attr('font-size', '12')
                     .attr('font-family', fontFamily);
+                // 오른쪽 브레이크 포인트 텍스트 추가
                 const RightBreakPoint = svg.append('g')
                 LeftBreakPoint.append('text')
                     .text(`${data.rightGene.bp}`)
-                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 100 ).attr('y', '150').attr('font-size', '12')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105 ).attr('y', '150').attr('font-size', '12')
+                    .attr('font-family', fontFamily);
+                // 왼쪽 cds 텍스트
+                const LeftCds = svg.append('g')
+                LeftCds.append('text')
+                    .text(`${data.leftGene.cds}`)
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 20).attr('y', '190').attr('font-size', '12')
+                    .attr('font-family', fontFamily);
+                // 오른쪽 cds 텍스트
+                const RightCds = svg.append('g')
+                LeftCds.append('text')
+                    .text(`${data.rightGene.cds}`)
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105).attr('y', '190').attr('font-size', '12')
                     .attr('font-family', fontFamily);
             }
         }
