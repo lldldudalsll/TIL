@@ -38,10 +38,14 @@
                     index.push(i)
                 })
                 let num = Math.floor(index[0]/3)
+                cds_transl[num][0].replace(/[a-z]/g, (match) => {
+                    cds_transl[num][2] = 'rgb(197, 224, 180)'
+                })
                 const right = [];
                 for (let i = 0; i <= 4; i++) {
                     right.push(cds_transl[num + i])                  
                 }
+                console.log(right)
                 const right_cds_array = [];
                 const right_transl_array= [];
                 right.filter(d => {
