@@ -71,41 +71,36 @@
                     })
                 })
                 // console.log('right', right)
-                console.log('transl', transl)
-                const right_cds_array = [];
-                const right_transl_array= [];
-                right.filter(d => {
-                    // right_cds_array.push(d[0])
-                    // right_transl_array.push(d[1])
-                })
+                // console.log('transl', transl)
 
-                const right_cds_string = right_cds_array.join('');
-                const right_transl_string = right_transl_array.join('');
+                let split_object = {
+                    cds: '',
+                    color: 'rgb(197, 224, 180)'
+                }
 
                 let split = '';
-                right_cds_string.replace(/[a-z]/g, (match, i) => {
-                    split = match
+                let ex = [];
+                right.forEach(d => {
+                    d.cds.replace(/[a-z]/g, (match, i) => {
+                        split_object.cds = match
+                    })
+                    ex.push(d)
                 })
-                // console.log('split',split)
-                var split_right_cds_string = right_cds_string.replace(split, '')
-                // console.log(split_right_cds_string)
+                var split_cds = ex[0].cds.replace(split_object.cds, '')
+                right.map(d => {
+                    if (d.cds[0] == split_object.cds[0]) {
+                        d.cds = split_cds
+                    }
+                })
 
                 return {
+                    split_object,
                     right,
                     transl,
-                    split,
-                    split_right_cds_string,
-                    right_transl_string
                 }
             }
             
             function lowerCase(cds_transl) {
-                // const lower = [];
-                // let result = string.replace(/[a-z]/g, (upp, i, st) => {
-                //     lower.push(upp)
-                // })
-                // let lowerString = lower.join('')
-                // return lowerString.substr(lowerString.length - 15)
                 const string = [];
                 cds_transl.filter(d => {
                     string.push(d[0]);
@@ -116,24 +111,30 @@
                     index.push(i)
                 })
                 let num = Math.floor(index.length/3 - 1)
+                
                 const left = [];
-
+                const transl = [];
                 function FusionCds(cds, color) {
                     this.cds = cds;
                     this.color = color;
                 }
-                for (let i = 4; i >= 0; i--) {
-                    left.push(new FusionCds(cds_transl[num - i][0], 'rgb(91, 155, 213)'))                  
+                function FusionTransl(transl, color) {
+                    this.transl = transl;
+                    this.color = color;
                 }
-                // for (let i = 4; i >= 0; i--) {
-                //     left.push(cds_transl[num - i])       
-                // }
-                // left.map(d => {
-                //     if (d.length === 2) {
-                //         d[2] = 'rgb(91, 155, 213)'
-                //     }
-                // })
-                // console.log('left', left)
+                for (let i = 4; i >= 0; i--) {
+                    left.push(new FusionCds(cds_transl[num - i][0], 'rgb(91, 155, 213)'))
+                    transl.push(new FusionTransl(cds_transl[num - i][1]))
+                }
+
+                for (let p = 0; p < transl.length; p++) {
+                    if(p % 2) {
+                        transl[p].color = 'rgb(192, 192, 192)'
+                    } else {
+                        transl[p].color = '#e9e9e9'
+                    }
+                }
+
                 const left_cds_array = [];
                 const left_transl_array= [];
                 left.filter(d => {
@@ -145,6 +146,7 @@
                 
                 return {
                     left,
+                    transl,
                     left_cds_string,
                     left_transl_string
                 }
@@ -196,12 +198,10 @@
                 d['source_name'] = d.fusionName.split('--')[0];
                 d['source_strand'] = d.leftBreakPoint.split(':')[2];
                 d['source_exon'] = d.left_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_source_exon);
-                // d['source_cds'] = lowerCase(d.fusion_cds).toUpperCase();
                 d['target_id'] = d.rightBreakpoint.split(':')[0];
                 d['target_name'] = d.fusionName.split('--')[1];
                 d['target_strand'] = d.rightBreakpoint.split(':')[2];
                 d['target_exon'] = d.right_tx_exon.split(':')[1].substring(4) + '/' + String(d.total_target_exon);
-                // d['target_cds'] = upperCase(d.fusion_cds);
                 return fusionData;
             });
             // console.log(fusionData)
@@ -231,26 +231,59 @@
                 for (let y = 0; y < cds_transl.length; y++) {
                     cds_transl[y].push(transl[y]);
                 }
-                // console.log('cds_transl', cds_transl)
 
-                const cdsString = [];
-                const translString = [];
-                let cdss = cds_transl.filter(d => {
-                    cdsString.push(d[0]);
-                    translString.push(d[1]);
+                // LowerCase UpperCase 로 리턴된 데이터 형식 변환
+
+                let left_cds = lowerCase(cds_transl).left
+                left_cds.push(upperCase(cds_transl).split_object)
+                // console.log(left_cds)
+
+                const total_transl = lowerCase(cds_transl).transl
+                const right_transl = upperCase(cds_transl).transl.map(d => d)
+                total_transl.push(...right_transl)
+
+                // console.log(total_transl)
+                // console.log('rrrrrr', left_cds[0].cds)
+
+                if(left_cds[left_cds.length - 1].cds !== '') {
+                    total_transl.shift();
+                    left_cds[0].cds = left_cds[0].cds.substring(3)
+                }
+                total_transl.map(d => {
+                    if(total_transl.length > 9) {
+                        d['translate'] = 67
+                    } else {
+                        d['translate'] = 88
+                    }
                 })
 
-                let transl_string = lowerCase(cds_transl).left_transl_string + upperCase(cds_transl).right_transl_string
-                const transl_array = transl_string.split('')
+                const right_cds = upperCase(cds_transl).right
 
-                console.log('asdasdasd', upperCase(cds_transl).right.map(d => d.cds))
+                function NewCds(cds) {
+                    this.cds = cds;
+                    this.color = '#ffffff';
+                }
 
-                d['source_cds'] = lowerCase(cds_transl).left_cds_string.toUpperCase() + upperCase(cds_transl).split.toUpperCase()
-                d['target_cds'] = upperCase(cds_transl).right.map(d => d.cds);
-                d['target_transl'] = upperCase(cds_transl).transl.map(d => d)
-                // d['target_cds_color'] =  upperCase(cds_transl).right.map(d => d.color);
-                d['source_fusion_cds'] = lowerCase(cds_transl).left
-                d['target_fusion_cds'] = upperCase(cds_transl).right
+                const displayNoneCds = new NewCds(upperCase(cds_transl).split_object.cds.toUpperCase())
+
+                console.log('zzzzz', displayNoneCds)
+                
+                right_cds.map(d => {
+                    if(d.cds.length < 2) {
+                        right_cds.unshift(displayNoneCds)
+                    }
+                })
+
+                // if (right_cds[0].cds.length < 2) {
+
+                // }
+
+                console.log('right_cds', right_cds)
+
+                // d['source_cds'] = lowerCase(cds_transl).left
+                d['source_cds'] = left_cds
+                d['target_cds'] = upperCase(cds_transl).right
+                d['transl'] = total_transl
             })
 
 
@@ -262,21 +295,19 @@
                     fusion[i].source_exon, 
                     fusion[i].leftBreakPoint,
                     fusion[i].source_cds,
-                    fusion[i].source_fusion_cds,
                     fusion[i].target_name, 
                     fusion[i].cds_right_id, 
                     fusion[i].target_strand, 
                     fusion[i].target_exon,
                     fusion[i].rightBreakpoint,
                     fusion[i].target_cds,
-                    fusion[i].target_fusion_cds,
-                    fusion[i].target_transl
+                    fusion[i].transl
                 )
             }
             
             function drawExonDiagram (
-                left_name, left_transcript, left_strand, left_exon, left_break_point, left_cds, source_fusion_cds,
-                right_name, right_transcript, right_strand, right_exon, right_break_point, right_cds, target_fusion_cds, fusion_transl) {
+                left_name, left_transcript, left_strand, left_exon, left_break_point, source_cds,
+                right_name, right_transcript, right_strand, right_exon, right_break_point, target_cds, transl) {
                 // fusion 다이어그램용 데이터
                 // leftGene: 왼쪽 유전자
                 // rightGene: 오른쪽 유전자
@@ -287,8 +318,7 @@
                         strand: left_strand,
                         exon: left_exon,
                         bp: left_break_point,
-                        cds: left_cds,
-                        fusion: source_fusion_cds
+                        cds: source_cds,
                     },
                     rightGene: {
                         name: right_name,
@@ -296,10 +326,9 @@
                         strand: right_strand,
                         exon: right_exon,
                         bp: right_break_point,
-                        cds: right_cds,
-                        fusion: target_fusion_cds
+                        cds: target_cds,
                     },
-                    transl: fusion_transl 
+                    transl: transl 
                 }
 
                 console.log('dataaaaaaaa', data)
@@ -397,8 +426,10 @@
                 // 하단 CDS TranSL 연결선
                 const LineColorTranSL = 'rgb(127,127,127)';
                 
-                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '300').style('margin-bottom', '30px')
+                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '280').style('margin-bottom', '30px')
                 //왼쪽 유전자명 라벨
+
+                svg.selectAll('g').data(data.transl).enter()
                 svg.append('g').append('text')
                     .text(`${data.leftGene.name}:${data.leftGene.transcript}(${data.leftGene.strand})`)
                     .attr('x', '5').attr('y', '15').attr('font-size', `${geneLabelFontSize}`)
@@ -591,15 +622,15 @@
 
                 // 왼쪽 cds 텍스트
                 const LeftCds = svg.append('g')
-                LeftCds.selectAll('text').data(data.leftGene.fusion).enter().append('text')
+                LeftCds.selectAll('text').data(data.leftGene.cds).enter().append('text')
                     .text(d => d.cds.toUpperCase())
                     .attr('transform', (d, i) => `translate(${22 * i } 0)`)
                     .attr('fill', d => d.color)
-                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 20).attr('y', '190').attr('font-size', '12')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 27).attr('y', '190').attr('font-size', '12')
                     .attr('font-family', fontFamily);
                 // 오른쪽 cds 텍스트
                 const RightCds = svg.append('g')
-                RightCds.selectAll('text').data(data.rightGene.fusion).enter().append('text')
+                RightCds.selectAll('text').data(data.rightGene.cds).enter().append('text')
                     .text(d => d.cds)
                     .attr('transform', (d, i) => `translate(${22 * i } 0)`)
                     .attr('fill', d => d.color)
@@ -607,20 +638,24 @@
                     .attr('font-family', fontFamily);
                 // 하단 transl 텍스트
                 const Fusion_TransL = svg.append('g')
-                    .attr('transform', 'translate(50, 203)')
-                    // .attr('x', fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonStrokeWidth).attr('y', 220)
-                    // .attr('width', `${leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)}`).attr('height', `${exonWidth + 5}`);
+                    .attr('transform', `translate(${data.transl[0].translate} 203)`)
 
                 Fusion_TransL.selectAll('rect').data(data.transl).enter().append('rect')
-                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin - 10) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin - 3) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
                     .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
                     .style('fill', d => d.color)
 
                 Fusion_TransL.selectAll('text').data(data.transl).enter().append('text')
                     .text(d => d.transl).attr('font-size', `${exonFontSize}`).attr('fill', '#181818')
-                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin - 10) * i) + exonLabelMarginLeft + exonLabelMarginTop}`)
+                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin - 3) * i) + exonLabelMarginLeft + exonLabelMarginTop}`)
                     .attr('y', `${exonStrokeWidth + exonLabelMarginTop + 1}`)
                     .attr('font-family', fontFamily);
+
+                const inframe = svg.append('g').append('text')
+                    .text('Inframe')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 75).attr('y', '240').attr('font-size', '12')
+                    .style('fill', 'rgb(0, 176, 80)')
+                    .style('font-size', '14')
             }
         }
         readJsonData()
