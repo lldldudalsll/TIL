@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,24 +9,25 @@
     <script src="https://d3js.org/d3.v5.js"></script>
     <link rel="stylesheet" href="css/exon.css">
 </head>
-<body>    
+
+<body>
     <div id="exon">
 
     </div>
     <script>
         async function readJsonData() {
-        
+
             const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
             const jnuData = await d3.json('http://localhost:3000/data/jnu_hem_r.json')
-            // console.log('fusionData', fusionData)
-            // console.log('jnuData', jnuData);
+                // console.log('fusionData', fusionData)
+                // console.log('jnuData', jnuData);
 
             // jnu_hem_r 에서 같은 transcript 중복제거 후 
             // 가장 큰 exon 소팅하여 fusionData에 key: value로 넣어준다
             // target이 없는 경우 예외처리 및 총 액손 수 지정할 수 있도록
             let left_exon = [];
             let right_exon = [];
-            
+
             // fotmatting fusion_cds
             function upperCase(cds_transl) {
                 // console.log(cds_transl)
@@ -38,13 +40,14 @@
                 cds_string.replace(/[A-Z]/g, (match, i) => {
                     index.push(i)
                 })
-                let num = Math.floor(index[0]/3)
+                let num = Math.floor(index[0] / 3)
                 const right = [];
                 const transl = [];
                 // fusion_cds 생성자
-                function FusionCds(cds, color) {
+                function FusionCds(cds, color, translateX) {
                     this.cds = cds;
                     this.color = color;
+                    this.translateX = translateX;
                 }
                 // fusion_cds 생성자
                 function FusionTransl(transl, color) {
@@ -52,12 +55,12 @@
                     this.color = color
                 }
                 for (let i = 0; i <= 4; i++) {
-                    right.push(new FusionCds(cds_transl[num + i][0], 'rgb(237, 125, 49)'))  
-                    transl.push(new FusionTransl(cds_transl[num + i][1]))          
+                    right.push(new FusionCds(cds_transl[num + i][0], 'rgb(237, 125, 49)', 22 * i))
+                    transl.push(new FusionTransl(cds_transl[num + i][1]))
                 }
 
                 for (let p = 0; p < transl.length; p++) {
-                    if(p % 2) {
+                    if (p % 2) {
                         transl[p].color = '#e9e9e9'
                     } else {
                         transl[p].color = 'rgb(192, 192, 192)'
@@ -67,11 +70,12 @@
                 right.filter(d => {
                     d.cds.replace(/[a-z]/g, (match, i) => {
                         d.color = 'rgb(197, 224, 180)'
+                        d.translateX = 7
                         transl[i].color = 'rgb(197, 224, 180)'
                     })
                 })
-                // console.log('right', right)
-                // console.log('transl', transl)
+                console.log('right', right)
+                    // console.log('transl', transl)
 
                 let split_object = {
                     cds: '',
@@ -99,7 +103,7 @@
                     transl,
                 }
             }
-            
+
             function lowerCase(cds_transl) {
                 const string = [];
                 cds_transl.filter(d => {
@@ -110,14 +114,16 @@
                 cds_string.replace(/[a-z]/g, (match, i) => {
                     index.push(i)
                 })
-                let num = Math.floor(index.length/3 - 1)
-                
+                let num = Math.floor(index.length / 3 - 1)
+
                 const left = [];
                 const transl = [];
+
                 function FusionCds(cds, color) {
                     this.cds = cds;
                     this.color = color;
                 }
+
                 function FusionTransl(transl, color) {
                     this.transl = transl;
                     this.color = color;
@@ -128,7 +134,7 @@
                 }
 
                 for (let p = 0; p < transl.length; p++) {
-                    if(p % 2) {
+                    if (p % 2) {
                         transl[p].color = 'rgb(192, 192, 192)'
                     } else {
                         transl[p].color = '#e9e9e9'
@@ -136,14 +142,14 @@
                 }
 
                 const left_cds_array = [];
-                const left_transl_array= [];
+                const left_transl_array = [];
                 left.filter(d => {
                     left_cds_array.push(d[0])
                     left_transl_array.push(d[1])
                 })
                 const left_cds_string = left_cds_array.join('');
                 const left_transl_string = left_transl_array.join('');
-                
+
                 return {
                     left,
                     transl,
@@ -151,7 +157,7 @@
                     left_transl_string
                 }
             }
-            
+
             fusionData.forEach(d => {
                 const exception = []
                 const sample = {
@@ -161,32 +167,32 @@
                     exception.push(sample)
                 }
 
-                if(jnuData.filter(i => i.transcript === d.cds_left_id).length === 0) {
+                if (jnuData.filter(i => i.transcript === d.cds_left_id).length === 0) {
                     left_exon.push(exception)
                 } else {
                     left_exon.push(jnuData.filter(i => i.transcript === d.cds_left_id))
                 }
-                
-                if(jnuData.filter(i => i.transcript === d.cds_right_id).length === 0) {
+
+                if (jnuData.filter(i => i.transcript === d.cds_right_id).length === 0) {
                     right_exon.push(exception)
                 } else {
                     right_exon.push(jnuData.filter(i => i.transcript === d.cds_right_id))
                 }
 
-                for (let y = 0; y < left_exon.length; y++ ){
+                for (let y = 0; y < left_exon.length; y++) {
                     const left_filter = left_exon[y]
                     const right_filter = right_exon[y]
                     let t_left_exon = []
                     let t_right_exon = []
                     for (let i = 0; i < left_filter.length; i++) {
                         t_left_exon.push(left_filter[i].exon)
-                        if(left_exon) {
+                        if (left_exon) {
                             d['total_source_exon'] = Math.max.apply(null, t_left_exon)
                         }
                     }
                     for (let x = 0; x < right_filter.length; x++) {
                         t_right_exon.push(right_filter[x].exon)
-                        if(right_exon) {
+                        if (right_exon) {
                             d['total_target_exon'] = Math.max.apply(null, t_right_exon)
                         }
                     }
@@ -207,7 +213,7 @@
             // console.log(fusionData)
             const fusion = [];
             fusionData.forEach((d) => {
-                if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
+                if (d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
                     fusion.push(d);
                 }
             });
@@ -219,7 +225,7 @@
                 const cds_transl = [];
                 for (let i = 0; i < d.fusion_cds.length / 3; i++) {
                     var cds = [];
-                    cds.push(d.fusion_cds.substring(i * 3,  (i + 1) * 3));
+                    cds.push(d.fusion_cds.substring(i * 3, (i + 1) * 3));
                     cds_transl.push(cds);
                 }
 
@@ -236,7 +242,7 @@
 
                 let left_cds = lowerCase(cds_transl).left
                 left_cds.push(upperCase(cds_transl).split_object)
-                // console.log(left_cds)
+                    // console.log(left_cds)
 
                 const total_transl = lowerCase(cds_transl).transl
                 const right_transl = upperCase(cds_transl).transl.map(d => d)
@@ -245,40 +251,51 @@
                 // console.log(total_transl)
                 // console.log('rrrrrr', left_cds[0].cds)
 
-                if(left_cds[left_cds.length - 1].cds !== '') {
+                if (left_cds[left_cds.length - 1].cds !== '') {
                     total_transl.shift();
                     left_cds[0].cds = left_cds[0].cds.substring(3)
                 }
                 total_transl.map(d => {
-                    if(total_transl.length > 9) {
+                    if (total_transl.length > 9) {
                         d['translate'] = 67
                     } else {
                         d['translate'] = 88
                     }
                 })
 
-                const right_cds = upperCase(cds_transl).right
+                // const right_cds = upperCase(cds_transl).right
 
-                function NewCds(cds) {
-                    this.cds = cds;
-                    this.color = '#ffffff';
-                }
+                // function NewCds(cds) {
+                //     this.cds = cds;
+                //     this.color = '#ffffff';
+                // }
 
-                const displayNoneCds = new NewCds(upperCase(cds_transl).split_object.cds.toUpperCase())
+                // const displayNoneCds = new NewCds(upperCase(cds_transl).split_object.cds.toUpperCase())
 
-                console.log('zzzzz', displayNoneCds)
-                
-                right_cds.map(d => {
-                    if(d.cds.length < 2) {
-                        right_cds.unshift(displayNoneCds)
-                    }
-                })
+                // console.log('zzzzz', displayNoneCds)
+
+                // console.log('aa', right_cds[0].cds.length)
+
+                // if (right_cds[0].cds.length < 3) {
+                //     right_cds.unshift(displayNoneCds)
+                // }
+
+                // right_cds.map(d => {
+                //     if (d.cds.length < 2) {
+                //         right_cds.unshift(displayNoneCds)
+                //     }
+                // })
+
+                // for (let k = 0; k < right_cds.length; k++) {
+                //     if(right_cds[0].length)
+
+                // }
 
                 // if (right_cds[0].cds.length < 2) {
 
                 // }
 
-                console.log('right_cds', right_cds)
+                // console.log('right_cds', right_cds)
 
                 // d['source_cds'] = lowerCase(cds_transl).left
                 d['source_cds'] = left_cds
@@ -287,25 +304,25 @@
             })
 
 
-            for(let i = 0; i < fusion.length; i++) {
+            for (let i = 0; i < fusion.length; i++) {
                 drawExonDiagram(
-                    fusion[i].source_name, 
-                    fusion[i].cds_left_id, 
-                    fusion[i].source_strand, 
-                    fusion[i].source_exon, 
+                    fusion[i].source_name,
+                    fusion[i].cds_left_id,
+                    fusion[i].source_strand,
+                    fusion[i].source_exon,
                     fusion[i].leftBreakPoint,
                     fusion[i].source_cds,
-                    fusion[i].target_name, 
-                    fusion[i].cds_right_id, 
-                    fusion[i].target_strand, 
+                    fusion[i].target_name,
+                    fusion[i].cds_right_id,
+                    fusion[i].target_strand,
                     fusion[i].target_exon,
                     fusion[i].rightBreakpoint,
                     fusion[i].target_cds,
                     fusion[i].transl
                 )
             }
-            
-            function drawExonDiagram (
+
+            function drawExonDiagram(
                 left_name, left_transcript, left_strand, left_exon, left_break_point, source_cds,
                 right_name, right_transcript, right_strand, right_exon, right_break_point, target_cds, transl) {
                 // fusion 다이어그램용 데이터
@@ -328,11 +345,11 @@
                         bp: right_break_point,
                         cds: target_cds,
                     },
-                    transl: transl 
+                    transl: transl
                 }
 
                 console.log('dataaaaaaaa', data)
-                //최대로 표시할 Exon의 개수
+                    //최대로 표시할 Exon의 개수
                 const maxDisplayExonNum = 4;
                 //최대로 표시할 삭제된 Exon의 개수
                 const maxDeletedExonNum = 2;
@@ -364,9 +381,12 @@
                         deletedExonList = geneExonList.slice(geneTargetExonNum, Math.min(geneTotalExonNum, geneTargetExonNum + maxDeletedExonListNum));
                     } else {
                         displayExonList = geneExonList.slice(geneTargetExonNum - 1, Math.min(geneTotalExonNum, geneTargetExonNum + maxDisplayExonNum) - 1);
-                        deletedExonList = geneExonList.slice(Math.max(0, geneTargetExonNum - maxDeletedExonListNum), geneTargetExonNum - 1);                
+                        deletedExonList = geneExonList.slice(Math.max(0, geneTargetExonNum - maxDeletedExonListNum), geneTargetExonNum - 1);
                     }
-                    return {displayExonList: displayExonList, deletedExonList: deletedExonList};
+                    return {
+                        displayExonList: displayExonList,
+                        deletedExonList: deletedExonList
+                    };
                 }
                 // 왼쪽 유전자 엑손 목록 생성
                 var leftGeneExonListData = getDisplayExonList(leftGeneTotalExonNum, leftGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'left');
@@ -374,7 +394,7 @@
                 var rightGeneExonListData = getDisplayExonList(rightGeneTotalExonNum, rightGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'right');
                 // console.log(leftGeneExonListData);
                 // console.log(rightGeneExonListData);
-                
+
                 //텍스트 폰트명
                 const fontFamily = 'Courier New';
                 // 유전자 라벨 높이
@@ -425,9 +445,9 @@
                 const fusionGeneLeftMargin = geneEmptySpaceWidth / 2;
                 // 하단 CDS TranSL 연결선
                 const LineColorTranSL = 'rgb(127,127,127)';
-                
+
                 var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '280').style('margin-bottom', '30px')
-                //왼쪽 유전자명 라벨
+                    //왼쪽 유전자명 라벨
 
                 svg.selectAll('g').data(data.transl).enter()
                 svg.append('g').append('text')
@@ -465,7 +485,7 @@
                     .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
                     .attr('font-family', fontFamily);
                 // 삭제된 엑손 목록을 표시할 수 있을 경우에 표시
-                if(leftGeneExonListData.deletedExonList.length > 0) {
+                if (leftGeneExonListData.deletedExonList.length > 0) {
                     // 왼쪽 유전자 삭제된 엑손 박스 그룹 컨테이너 추가
                     var deletedExonBoxList1Layer = svg.append('g').attr('transform', `translate(${exonStrokeWidth + (exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length} ${geneLabelHeight})`)
                         .attr('x', `${exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
@@ -481,7 +501,7 @@
                         .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
                         .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
                         .attr('font-family', fontFamily);
-                }    
+                }
                 // 오른쪽 유전자 엑손 연결 라인 그룹 컨테이너 추가(엑손 박스 중간 높이로 좌표 이동)
                 const geneBox2Line = svg.append('g')
                     .attr('transform', `translate(${((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin + geneEmptySpaceWidth + exonStrokeWidth} ${geneLabelHeight + (exonHeight / 2) + exonStrokeWidth})`);
@@ -523,12 +543,12 @@
                         .text(d => d).attr('font-size', `${exonFontSize}`).attr('fill', exonTextColor)
                         .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin) * i) + exonLabelMarginLeft}`)
                         .attr('y', `${exonStrokeWidth + exonLabelMarginTop}`)
-                        .attr('font-family', fontFamily);    
+                        .attr('font-family', fontFamily);
                 }
                 // 하단의 왼쪽 유전자 엑손 연결 라인 좌표 이동
                 const fusionGeneBox1Line = svg.append('g')
                     .attr('transform', `translate(${fusionGeneLeftMargin} ${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight + exonHeight / 2 + exonStrokeWidth })`)
-                // 하단의 왼쪽 유전자 엑손 연결 라인 추가
+                    // 하단의 왼쪽 유전자 엑손 연결 라인 추가
                 fusionGeneBox1Line.append('line').attr('stroke', leftGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
                     .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth + exonMargin) *
                         leftGeneExonListData.displayExonList.length - exonMargin}`);
@@ -536,7 +556,7 @@
                 const fusionGeneBox2Line = svg.append('g')
                     .attr('transform', `translate(${fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonMargin} ${geneLabelHeight + exonHeight +
                         fusionGeneLayerEmptySpaceHeight + exonHeight / 2 + exonStrokeWidth })`)
-                // 하단의 왼쪽 유전자 엑손 연결 라인 추가
+                    // 하단의 왼쪽 유전자 엑손 연결 라인 추가
                 fusionGeneBox2Line.append('line').attr('stroke', rightGeneBoxLineColor).attr('stroke-width', `${exonStrokeWidth}`)
                     .attr('x1', `${exonStrokeWidth}`).attr('y1', `${exonStrokeWidth}`).attr('x2', `${(exonWidth +
                         exonMargin) *
@@ -546,7 +566,7 @@
                     .attr('transform', `translate(${fusionGeneLeftMargin} ${geneLabelHeight + exonHeight +
                     fusionGeneLayerEmptySpaceHeight})`)
                     .attr('x', '100').attr('y', `${exonStrokeWidth}`)
-                // 하단의 왼쪽 유전자의 엑손 박스 추가
+                    // 하단의 왼쪽 유전자의 엑손 박스 추가
                 fusionGeneBox1Layer.selectAll('rect').data(leftGeneExonListData.displayExonList).enter().append('rect')
                     .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
                     .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
@@ -556,7 +576,7 @@
                     .attr('transform', `translate(${fusionGeneLeftMargin + (exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length -
                     exonMargin} ${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight})`)
                     .attr('x', '100').attr('y', `${exonStrokeWidth}`)
-                // 하단의 왼쪽 유전자의 엑손 박스 추가
+                    // 하단의 왼쪽 유전자의 엑손 박스 추가
                 fusionGeneBox2Layer.selectAll('rect').data(rightGeneExonListData.displayExonList).enter().append('rect')
                     .attr('x', (d, i) => `${i * (exonWidth + exonMargin) + exonStrokeWidth * 2}`).attr('y', `${exonStrokeWidth}`)
                     .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
@@ -579,7 +599,7 @@
                     .attr('font-family', fontFamily);
                 // 왼쪽 퓨전 엑손 박스간 연결 라인용 그룹 컨테이너 추가
                 const fusionGeneBoxToBox1Line = svg.append('g')
-                // 왼쪽 퓨전 엑손 박스간 연결 라인 그리기
+                    // 왼쪽 퓨전 엑손 박스간 연결 라인 그리기
                 fusionGeneBoxToBox1Line.append('line')
                     .attr('stroke', leftGeneBoxLineColor)
                     .attr('stroke-width', `${exonStrokeWidth}`)
@@ -590,7 +610,7 @@
                     .attr('y2', `${geneLabelHeight + exonHeight + fusionGeneLayerEmptySpaceHeight}`);
                 // 오른쪽 퓨전 엑손 박스간 연결 라인용 그룹 컨테이너 추가
                 const fusionGeneBoxToBox2Line = svg.append('g')
-                // 오른쪽 퓨전 엑손 박스간 연결 라인 그리기
+                    // 오른쪽 퓨전 엑손 박스간 연결 라인 그리기
                 fusionGeneBoxToBox2Line.append('line')
                     .attr('stroke', rightGeneBoxLineColor)
                     .attr('stroke-width', `${exonStrokeWidth}`)
@@ -608,7 +628,7 @@
                     .attr('y1', 116)
                     .attr('x2', fusionGeneLeftMargin + ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - exonStrokeWidth)
                     .attr('y2', 220)
-                // 왼쪽 브레이크 포인트 텍스트 추가
+                    // 왼쪽 브레이크 포인트 텍스트 추가
                 const LeftBreakPoint = svg.append('g')
                 LeftBreakPoint.append('text')
                     .text(`${data.leftGene.bp}`)
@@ -617,7 +637,7 @@
                 // 오른쪽 브레이크 포인트 텍스트 추가
                 LeftBreakPoint.append('text')
                     .text(`${data.rightGene.bp}`)
-                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105 ).attr('y', '150').attr('font-size', '12')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105).attr('y', '150').attr('font-size', '12')
                     .attr('font-family', fontFamily);
 
                 // 왼쪽 cds 텍스트
@@ -632,7 +652,7 @@
                 const RightCds = svg.append('g')
                 RightCds.selectAll('text').data(data.rightGene.cds).enter().append('text')
                     .text(d => d.cds)
-                    .attr('transform', (d, i) => `translate(${22 * i } 0)`)
+                    .attr('transform', (d, i) => `translate(${d.translateX} 0)`)
                     .attr('fill', d => d.color)
                     .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105).attr('y', '190').attr('font-size', '12')
                     .attr('font-family', fontFamily);
@@ -659,8 +679,7 @@
             }
         }
         readJsonData()
-
-        
     </script>
 </body>
+
 </html>
