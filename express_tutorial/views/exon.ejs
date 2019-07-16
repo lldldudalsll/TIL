@@ -68,13 +68,13 @@
                 }
 
                 right.filter(d => {
-                    d.cds.replace(/[a-z]/g, (match, i) => {
-                        d.color = 'rgb(197, 224, 180)'
-                        d.translateX = 7
-                        transl[i].color = 'rgb(197, 224, 180)'
+                        d.cds.replace(/[a-z]/g, (match, i) => {
+                            d.color = 'rgb(197, 224, 180)'
+                                // d.translateX = 7
+                            transl[i].color = 'rgb(197, 224, 180)'
+                        })
                     })
-                })
-                console.log('right', right)
+                    // console.log('right', right)
                     // console.log('transl', transl)
 
                 let split_object = {
@@ -96,6 +96,14 @@
                         d.cds = split_cds
                     }
                 })
+
+                console.log('right', right[0].cds.length)
+
+                if (right[0].cds.length === 2) {
+                    right[0].translateX = 7;
+                } else if (right[0].cds.length === 1) {
+                    right[0].translateX = 14;
+                }
 
                 return {
                     split_object,
