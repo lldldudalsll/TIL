@@ -97,7 +97,7 @@
                     }
                 })
 
-                console.log('right', right[0].cds.length)
+                // console.log('right', right[0].cds.length)
 
                 if (right[0].cds.length === 2) {
                     right[0].translateX = 7;
@@ -265,9 +265,9 @@
                 }
                 total_transl.map(d => {
                     if (total_transl.length > 9) {
-                        d['translate'] = 67
+                        d['translate'] = 0
                     } else {
-                        d['translate'] = 88
+                        d['translate'] = 20
                     }
                 })
 
@@ -400,8 +400,8 @@
                 var leftGeneExonListData = getDisplayExonList(leftGeneTotalExonNum, leftGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'left');
                 // 오른족 유전자 엑손 목록 생성
                 var rightGeneExonListData = getDisplayExonList(rightGeneTotalExonNum, rightGeneTargetExonNum, maxDisplayExonNum, maxDeletedExonNum, 'right');
-                // console.log(leftGeneExonListData);
-                // console.log(rightGeneExonListData);
+                console.log(leftGeneExonListData);
+                console.log(rightGeneExonListData);
 
                 //텍스트 폰트명
                 const fontFamily = 'Courier New';
@@ -666,7 +666,7 @@
                     .attr('font-family', fontFamily);
                 // 하단 transl 텍스트
                 const Fusion_TransL = svg.append('g')
-                    .attr('transform', `translate(${data.transl[0].translate} 203)`)
+                    .attr('transform', `translate(${((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length - 103) - data.transl.length + data.transl[0].translate} 203)`)
 
                 Fusion_TransL.selectAll('rect').data(data.transl).enter().append('rect')
                     .attr('x', (d, i) => `${i * (exonWidth + exonMargin - 3) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
