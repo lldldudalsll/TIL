@@ -44,10 +44,10 @@
                 const right = [];
                 const transl = [];
                 // fusion_cds 생성자
-                function FusionCds(cds, color, translateX) {
+                function FusionCds(cds, color, translateRight) {
                     this.cds = cds;
                     this.color = color;
-                    this.translateX = translateX;
+                    this.translateRight = translateRight;
                 }
                 // fusion_cds 생성자
                 function FusionTransl(transl, color) {
@@ -100,9 +100,9 @@
                 // console.log('right', right[0].cds.length)
 
                 if (right[0].cds.length === 2) {
-                    right[0].translateX = 7;
+                    right[0].translateRight = 7;
                 } else if (right[0].cds.length === 1) {
-                    right[0].translateX = 14;
+                    right[0].translateRight = 14;
                 }
 
                 return {
@@ -127,9 +127,10 @@
                 const left = [];
                 const transl = [];
 
-                function FusionCds(cds, color) {
+                function FusionCds(cds, color, x) {
                     this.cds = cds;
                     this.color = color;
+                    this.x = x;
                 }
 
                 function FusionTransl(transl, color) {
@@ -137,7 +138,7 @@
                     this.color = color;
                 }
                 for (let i = 4; i >= 0; i--) {
-                    left.push(new FusionCds(cds_transl[num - i][0], 'rgb(91, 155, 213)'))
+                    left.push(new FusionCds(cds_transl[num - i][0], 'rgb(91, 155, 213)', 0))
                     transl.push(new FusionTransl(cds_transl[num - i][1]))
                 }
 
@@ -267,9 +268,17 @@
                     if (total_transl.length > 9) {
                         d['translate'] = 0
                     } else {
-                        d['translate'] = 20
+                        d['translate'] = 14
                     }
                 })
+
+                for (let k = 0; k < left_cds.length; k++) {
+                    if (left_cds[left_cds.length - 1].cds.length === 1) {
+                        left_cds[k].x = 7;
+                    } else if (left_cds[left_cds.length - 1].cds.length === 2) {
+                        left_cds[k].x = 14;
+                    }
+                }
 
                 // const right_cds = upperCase(cds_transl).right
 
@@ -654,28 +663,28 @@
                     .text(d => d.cds.toUpperCase())
                     .attr('transform', (d, i) => `translate(${22 * i } 0)`)
                     .attr('fill', d => d.color)
-                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 27).attr('y', '190').attr('font-size', '12')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) - 15 - data.leftGene.cds[0].x).attr('y', '190').attr('font-size', '12')
                     .attr('font-family', fontFamily);
                 // 오른쪽 cds 텍스트
                 const RightCds = svg.append('g')
                 RightCds.selectAll('text').data(data.rightGene.cds).enter().append('text')
                     .text(d => d.cds)
-                    .attr('transform', (d, i) => `translate(${d.translateX} 0)`)
+                    .attr('transform', (d, i) => `translate(${d.translateRight} 0)`)
                     .attr('fill', d => d.color)
-                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 105).attr('y', '190').attr('font-size', '12')
+                    .attr('x', ((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length) + 100 - data.leftGene.cds[0].x).attr('y', '190').attr('font-size', '12')
                     .attr('font-family', fontFamily);
                 // 하단 transl 텍스트
                 const Fusion_TransL = svg.append('g')
-                    .attr('transform', `translate(${((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length - 103) - data.transl.length + data.transl[0].translate} 203)`)
+                    .attr('transform', `translate(${((exonWidth + exonMargin) * leftGeneExonListData.displayExonList.length - 7) - data.transl.length + data.transl[0].translate} 203)`)
 
                 Fusion_TransL.selectAll('rect').data(data.transl).enter().append('rect')
-                    .attr('x', (d, i) => `${i * (exonWidth + exonMargin - 3) + exonStrokeWidth}`).attr('y', `${exonStrokeWidth}`)
-                    .attr('width', `${exonWidth}`).attr('height', `${exonHeight}`)
+                    .attr('x', (d, i) => `${i * 23}`).attr('y', `${exonStrokeWidth}`)
+                    .attr('width', '23').attr('height', `${exonHeight}`)
                     .style('fill', d => d.color)
 
                 Fusion_TransL.selectAll('text').data(data.transl).enter().append('text')
                     .text(d => d.transl).attr('font-size', `${exonFontSize}`).attr('fill', '#181818')
-                    .attr('x', (d, i) => `${exonStrokeWidth + ((exonWidth + exonMargin - 3) * i) + exonLabelMarginLeft + exonLabelMarginTop}`)
+                    .attr('x', (d, i) => `${i * 23 + exonLabelMarginTop}`)
                     .attr('y', `${exonStrokeWidth + exonLabelMarginTop + 1}`)
                     .attr('font-family', fontFamily);
 
