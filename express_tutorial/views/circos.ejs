@@ -16,7 +16,7 @@
       async function readJsonData() {
         const gene = await d3.json('http://localhost:3000/data/gene.json')
         const fusionData = await d3.json('http://localhost:3000/data/fusion.json')
-        // console.log('fusion', fusionData)
+        console.log('fusion', fusionData)
         // forEach 의 return value 는 undefined, 
         // map 은 콜백 함수의 결과 값들로 구성된 새로운 배열을 return
 
@@ -42,9 +42,10 @@
         
         const fusion = [];
         fusionData.forEach((d) => {
-          if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
-            fusion.push(d);
-          }
+          // if( d.prot_fusion_type === 'INFRAME' && (d.junctionReadCount > 0 && d.spanningFragCount > 0)) {
+          //   fusion.push(d);
+          // }
+          fusion.push(d)
         });
 
         // 타겟에 없는 유전자 gene 데이터에 추가

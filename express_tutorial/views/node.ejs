@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>Node</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <script>
+      var formData = new FormData();
+      formData.append('name', 'youngmin')
+      formData.append('birth', '1987');
+
+      var xhr = new XMLHttpRequest();
+
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState === xhr.DONE) {// 요청이 완료되면
+          if(xhr.status === 200 || xhr.status === 201) {
+            console.log(xhr.responseText)
+          } else {
+            console.error(xhr.responseText)
+          }
+        }
+      }
+
+      xhr.open('POST', 'https://www.zerocho.com/api/post/formdata')
+      xhr.send(formData)
+    </script>
+  </body>
+</html>

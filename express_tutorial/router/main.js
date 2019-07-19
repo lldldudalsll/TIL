@@ -185,5 +185,13 @@ module.exports = function(app) {
   app.get('/exon', (req, res) => {
     res.render('exon')
   })
+
+  app.get('/node', (req, res) => {
+    res.render('node')
+  })
+
+  // app.get('/arrow', (req, res) => {
+  //   res.render('arrow')
+  // })
   
 }
