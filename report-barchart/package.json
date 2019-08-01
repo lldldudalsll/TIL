@@ -1,0 +1,18 @@
+{
+  "name": "barchart_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pm2 start server.js --watch",
+    "start": "node server.js"
+  },
+  "author": "youngmin",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.6.2",
+    "express": "^4.17.1",
+    "pm2": "^3.5.1",
+    "xlsx": "^0.14.4"
+  }
+}
