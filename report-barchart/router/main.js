@@ -1,13 +1,15 @@
 const fs = require('fs');
-const XLSX = require('xlsx');
+const XLSX = require('read-excel-file/node');
 
 module.exports = function(app){
   app.get('/', (req, res) => {
-    let data = XLSX.readFile("./public/data/health1.xlsx")
-    // console.log(data);
+    let data = XLSX("./public/data/health1.xlsx").then((rows) => {
+      console.log('rows', rows)
+    })
+    console.log(data);
     // res.render('index.html')
-    let worksheet = data.Sheets["체질량 지수"];
-    console.log(worksheet)
+    // let worksheet = data.Sheets["체질량 지수"];
+    // console.log(worksheet)
     // makeJsonFile(worksheet)
 
     // function makeJsonFile(data) {
