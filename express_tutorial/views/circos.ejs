@@ -5,12 +5,14 @@
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src='https://cdn.rawgit.com/nicgirault/circosJS/v2/dist/circos.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/save-svg-as-png@1.4.14/lib/saveSvgAsPng.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/nightmare@3.0.2/lib/nightmare.min.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script> -->
   </head>
 
   <body>
     <div id="circos"></div>
+    <button class="download">download</button>
     <script>
       
       async function readJsonData() {
@@ -75,7 +77,9 @@
               d['source_breakpoint'] = gene[g].len / 2
               d['size'] = gene[g].len
             }
-            if(d.target_name === gene[g].label) {
+            console.log('label', gene[g].chr)
+            if(d.target_name === gene[g].label && d.target_id === gene[g].chr) {
+              console.log('duplicate', d)
               d['target_breakpoint'] = gene[g].len / 2
             }
           }
@@ -134,6 +138,7 @@
             }
           });
           // config circos layout
+          console.log('circos', circos)
           circos
             .layout(gene,
             {
@@ -154,13 +159,62 @@
             .chords('l1', d,
             {
               opacity: 0.7,
-              color: '#ff5722',
+              color: function(d) {
+                console.log(d)
+                if(d.source.chr === 'chr1') {
+                  return '#ff9614'
+                }
+                if(d.source.chr === 'chr5') {
+                  return '#ff5722'
+                }
+                if(d.source.chr === 'chr8') {
+                  return '#5c518b'
+                }
+                if(d.source.chr === 'chr9') {
+                  // return '#8572ee'
+                  return '#ff5722'
+                  // return '#ff0000'
+                }
+                if(d.source.chr === 'chr11') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr12') {
+                  return '#1e82ff'
+                }
+                if(d.source.chr === 'chr14') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr15') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr16') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr17') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr19') {
+                  return '#ff0000'
+                }
+                if(d.source.chr === 'chr20') {
+                  return '#1e82ff'
+                }
+                if(d.source.chr === 'chr21') {
+                  return '#5ac8c8'
+                }
+                if(d.source.chr === 'chr22') {
+                  return '#ff0000'
+                } else {
+                  return '#ff5722'
+                }
+              },
               tooltipContent: function (d) {
                 return '<h3>' + d.source.id + ' ➤ ' + d.target.id + '</h3>'
               },
             })
             .render()
           // end circos object
+          // '#ff5722',
         }
         // Call drawCircos
         drawCircos(gene, fusion);
@@ -273,6 +327,10 @@
           .text(d => d.chr)
 
         // end circos
+      })
+
+      d3.select('.download').on('click', function() {
+        saveSvgAsPng(document.getElementsByTagName("svg")[0], "plot.png", {scale: 2, backgroundColor: "#FFFFFF"});
       })
 
     </script>
