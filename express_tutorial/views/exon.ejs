@@ -43,8 +43,10 @@
             }
 
             // fotmatting fusion_cds
-            function upperCase(cds_transl) {
-                // console.log('upper', cds_transl)
+            function upperCase(data, cds_transl) {
+
+                // console.log(cds_transl)
+
                 const string = [];
                 cds_transl.filter(d => {
                     string.push(d[0]);
@@ -57,24 +59,27 @@
                 let num = Math.floor(index[0] / 3)
                 const right = [];
                 const transl = [];
-                // fusion_cds 생성자
                 
                 for (let i = 0; i <= 4; i++) {
                     right.push(new FusionCds(cds_transl[num + i][0], 'rgb(237, 125, 49)', 22 * i))
                     transl.push(new FusionTransl(cds_transl[num + i][1]))
                 }
                 
-                // console.log('transl', transl)
-                // console.log('right', right)
-                // transl.filter(d => {
-                //     d.transl === '*' ? d.color = '#eb5a5a' : d.color = 'rgb(192, 192, 192)'
-                // })
                 for (let p = 0; p < transl.length; p++) {
                     
                     if (p % 2) {
                         transl[p].color = '#e9e9e9'
                     } else {
                         transl[p].color = 'rgb(192, 192, 192)'
+                    }
+
+                    if (data.prot_fusion_type === "FRAMESHIFT") {
+                        for (let i = 0; i < p; i++) {
+                            transl[i].color = 'rgb(197, 224, 180)';
+                            right[i].color = 'rgb(197, 224, 180)';
+                            right[i + 1].color = 'rgb(197, 224, 180)';
+                        }
+                        transl[p].color = 'rgb(197, 224, 180)';
                     }
 
                     if (transl[p].transl === '*') {
@@ -85,6 +90,7 @@
                         }
                         transl[p].color = '#eb5a5a';
                     }
+
                     if (cds_transl[0].length === 3) {
                         transl[p].color = 'rgb(197, 224, 180)';
                         right[p].color = 'rgb(197, 224, 180)';
@@ -97,8 +103,6 @@
                         transl[i].color = 'rgb(197, 224, 180)';
                     })
                 })
-                    // console.log('right', right)
-                // console.log('transl', transl)
 
                 let split_object = {
                     cds: '',
@@ -107,20 +111,26 @@
 
                 let split = '';
                 let ex = [];
+
                 right.forEach(d => {
-                    d.cds.replace(/[a-z]/g, (match, i) => {
-                        split_object.cds = match
-                    })
                     ex.push(d)
                 })
+
+                // 앞에 a나 ag 소문자인 부분 받아오는 부분
+                // console.log('right', right)
+                var lowerString = right[0].cds.match(/[a-z]/g);
+
+                if(lowerString !== null) {
+                    split_object.cds = lowerString.join('')
+                }
+
                 var split_cds = ex[0].cds.replace(split_object.cds, '')
+
                 right.map(d => {
                     if (d.cds[0] == split_object.cds[0]) {
                         d.cds = split_cds
                     }
                 })
-
-                // console.log('right', right[0].cds.length)
 
                 if (right[0].cds.length === 2) {
                     right[0].translateRight = 7;
@@ -137,6 +147,8 @@
 
             function lowerCase(cds_transl) {
                 const string = [];
+
+                // console.log('cds_transl', cds_transl)
                 cds_transl.filter(d => {
                     string.push(d[0]);
                 })
@@ -278,11 +290,11 @@
                 // LowerCase UpperCase 로 리턴된 데이터 형식 변환
 
                 let left_cds = lowerCase(cds_transl).left
-                left_cds.push(upperCase(cds_transl).split_object)
+                left_cds.push(upperCase(d, cds_transl).split_object)
                     // console.log(left_cds)
 
                 const total_transl = lowerCase(cds_transl).transl
-                const right_transl = upperCase(cds_transl).transl.map(d => d)
+                const right_transl = upperCase(d, cds_transl).transl.map(d => d)
                 total_transl.push(...right_transl)
 
                 // console.log(total_transl)
@@ -344,7 +356,7 @@
 
                 // d['source_cds'] = lowerCase(cds_transl).left
                 d['source_cds'] = left_cds
-                d['target_cds'] = upperCase(cds_transl).right
+                d['target_cds'] = upperCase(d, cds_transl).right
                 d['transl'] = total_transl
             })
 
@@ -503,7 +515,7 @@
                 // 하단 CDS TranSL 연결선
                 const LineColorTranSL = 'rgb(127,127,127)';
 
-                var svg = d3.select('div').append('svg').attr('width', '100%').attr('height', '280').style('margin-bottom', '30px')
+                var svg = d3.select('div').append('svg').attr('width', '620').attr('height', '280').style('margin-bottom', '30px')
                     //왼쪽 유전자명 라벨
 
                 svg.selectAll('g').data(data.transl).enter()
@@ -515,7 +527,7 @@
                 // 오른쪽 유전자명 라벨
                 svg.append('g').append('text')
                     .text(`${data.rightGene.name}:${data.rightGene.transcript}(${data.rightGene.strand})`)
-                    .attr('transform', `translate(${exonStrokeWidth + (leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)) - exonMargin + geneEmptySpaceWidth})`)
+                    .attr('transform', `translate(${exonStrokeWidth + (leftGeneExonListData.displayExonList.length * (exonWidth + exonMargin)) - exonMargin + geneEmptySpaceWidth })`)
                     .attr('x', '5')
                     .attr('y', '15')
                     .attr('font-size', `${geneLabelFontSize}`)
@@ -737,7 +749,7 @@
                     .attr("text-anchor", "middle")
 
                 d3.select('.download').on('click', function() {
-                    saveSvgAsPng(document.getElementsByTagName("svg")[1], "exon.png", {scale: 1, backgroundColor: "#FFFFFF"});
+                    saveSvgAsPng(document.getElementsByTagName("svg")[0], "exon.png", {scale: 1, backgroundColor: "#FFFFFF"});
                     // saveSvgAsPng(document.getElementsByTagName("svg")[1], "exon.png", {scale: 1, backgroundColor: "#FFFFFF"});
                 })
             }
