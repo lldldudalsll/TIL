@@ -9,6 +9,6 @@
   "author": "youngmin",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^6.0.0"
+    "electron": "^15.5.5"
   }
 }
